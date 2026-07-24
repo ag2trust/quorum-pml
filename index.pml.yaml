@@ -4,9 +4,10 @@ project:
   id: quorum
   name: Quorum
   purpose: >-
-    Coordinate software-delivery agents through an opinionated Git workflow so work
-    progresses safely from an accepted task through isolated implementation,
-    pull-request review, rework, required checks, and protected merge.
+    Coordinate supported coding runners as managed workers and reviewers through an
+    opinionated Git workflow so work progresses safely from an accepted task through
+    isolated implementation, pull-request review, rework, required checks, and
+    protected merge.
 
 actors:
   coordination_daemon:
