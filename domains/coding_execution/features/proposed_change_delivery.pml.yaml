@@ -1,0 +1,73 @@
+purpose: >-
+  Convert implementation work into a durable Proposed Change whose repository state
+  is authoritative for delivery.
+
+actors:
+  - coordination_daemon
+  - coding_worker
+  - repository_service
+
+inputs:
+  - A Managed Task and its assigned implementation context.
+  - A completion signal identifying a Proposed Change.
+  - Current branch and pull-request state from the Repository Service.
+
+outputs:
+  - A validated Proposed Change eligible for independent review.
+  - A loud rejection when the signaled change is missing or mismatched.
+
+produces:
+  - proposed_change_submitted
+  - proposed_revision_changed
+
+rules:
+  repository_is_authoritative:
+    statement: >-
+      The Coordination Daemon MUST use Repository Service state as authoritative for
+      Proposed Change identity, revision, and disposition.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  signaled_change_must_exist:
+    statement: >-
+      The Coordination Daemon MUST reject a completion signal whose Proposed Change
+      does not exist or is not open.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  branch_must_match:
+    statement: >-
+      The Coordination Daemon MUST reject a Proposed Change that does not use the
+      Managed Task's assigned branch.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  change_identity_is_durable:
+    statement: >-
+      The Coordination Daemon MUST preserve the association between a Managed Task
+      and its Proposed Change across restart.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+use_cases:
+  submit_proposed_change:
+    actor: coding_worker
+    goal: Submit completed implementation for independent review.
+    given:
+      - The assigned branch contains the intended implementation.
+      - The Proposed Change is open in the Repository Service.
+    when:
+      - The Coding Worker signals the Proposed Change.
+    then:
+      - The Coordination Daemon verifies its branch, revision, and repository state.
+      - The Managed Task becomes eligible for independent review.
+    otherwise:
+      - The signal is rejected without advancing the Managed Task.
+    verification: {requires: [deterministic_probe]}
+
+acceptance:
+  durable_reviewable_change:
+    statement: >-
+      An accepted completion signal MUST identify an open Proposed Change on the
+      Managed Task's assigned branch and remain associated across restart.
+    verification: {requires: [deterministic_probe]}

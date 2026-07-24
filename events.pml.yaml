@@ -1,0 +1,36 @@
+task_accepted:
+  meaning: A Managed Task became eligible for coordinated delivery.
+  subject: managed_task
+implementation_started:
+  meaning: A Coding Run began implementation for a Managed Task.
+  subject: coding_run
+proposed_change_submitted:
+  meaning: A worker submitted a Proposed Change for independent review.
+  subject: proposed_change
+review_changes_required:
+  meaning: A Review Verdict identified blocking findings requiring rework.
+  subject: review_verdict
+review_approved:
+  meaning: A Review Verdict attested that no blocking findings remain.
+  subject: review_verdict
+proposed_revision_changed:
+  meaning: The revision of a Proposed Change changed after prior evaluation.
+  subject: proposed_change
+required_checks_passed:
+  meaning: Required Checks passed for the evaluated Proposed Change revision.
+  subject: proposed_change
+required_checks_failed:
+  meaning: Required Checks did not pass for the evaluated Proposed Change revision.
+  subject: proposed_change
+merge_completed:
+  meaning: The Repository Service merged the Proposed Change into its Base Revision.
+  subject: proposed_change
+coding_run_failed:
+  meaning: A Coding Run terminated without satisfying its expected lifecycle signal.
+  subject: coding_run
+coding_run_interrupted:
+  meaning: A Coding Run stopped before satisfying its expected lifecycle signal.
+  subject: coding_run
+base_revision_changed:
+  meaning: The target Base Revision advanced to a different exact revision.
+  subject: base_revision

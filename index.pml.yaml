@@ -1,0 +1,23 @@
+pml: "0.1-draft"
+
+project:
+  id: quorum
+  name: Quorum
+  purpose: >-
+    Coordinate software-delivery agents through an opinionated Git workflow so work
+    progresses safely from an accepted task through isolated implementation,
+    pull-request review, rework, required checks, and protected merge.
+
+actors:
+  coordination_daemon:
+    meaning: The autonomous system that coordinates task execution, review, and merge.
+  task_author:
+    meaning: The person or system that submits accepted software-delivery work.
+  coding_worker:
+    meaning: A managed coding run authorized to implement or revise one Managed Task.
+  code_reviewer:
+    meaning: A managed coding run authorized to evaluate one Proposed Change independently.
+  repository_service:
+    meaning: >-
+      The external source-control system that stores branches, proposed changes,
+      reviews, required checks, and merge state.

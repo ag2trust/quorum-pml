@@ -1,0 +1,40 @@
+managed_task:
+  term: Managed Task
+  owned_by: Coordination Daemon
+  lifecycle:
+    - open
+    - working
+    - in review
+    - rework
+    - merging
+    - done
+    - terminal failure
+coding_run:
+  term: Coding Run
+  owned_by: Coordination Daemon
+  lifecycle:
+    - starting
+    - active
+    - awaiting signal
+    - interrupted
+    - failed
+    - finished
+proposed_change:
+  term: Proposed Change
+  owned_by: Repository Service
+  lifecycle:
+    - open
+    - under review
+    - changes required
+    - approved
+    - merged
+    - closed
+base_revision:
+  term: Base Revision
+  owned_by: Repository Service
+review_verdict:
+  term: Review Verdict
+  owned_by: Coordination Daemon
+delivery_hold:
+  term: Delivery Hold
+  owned_by: Coordination Daemon

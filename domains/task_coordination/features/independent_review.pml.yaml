@@ -1,0 +1,86 @@
+purpose: >-
+  Require evidence-based independent review of every Proposed Change before merge.
+
+actors:
+  - coordination_daemon
+  - code_reviewer
+  - repository_service
+
+inputs:
+  - A Proposed Change and its current exact revision.
+  - Repository instructions, task constraints, and verification evidence.
+
+outputs:
+  - An attested Review Verdict matching the review's blocking findings.
+  - Durable findings attached to the Proposed Change.
+
+produces:
+  - review_changes_required
+  - review_approved
+
+rules:
+  reviewer_is_independent:
+    statement: >-
+      The Coordination Daemon MUST NOT assign review to the author or deliverer of the
+      Proposed Change.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  findings_are_evidence_based:
+    statement: >-
+      The Code Reviewer MUST support every blocking finding with a concrete code path
+      and demonstrated failure.
+    severity: critical
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+  findings_are_durable:
+    statement: >-
+      The Code Reviewer MUST record authoritative blocking and advisory findings on
+      the Proposed Change.
+    severity: high
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+  approval_has_no_blockers:
+    statement: >-
+      IF a Review Verdict is approval, THE SYSTEM MUST verify that the review declares
+      zero blocking findings.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  changes_has_blockers:
+    statement: >-
+      IF a Review Verdict requires changes, THE SYSTEM MUST verify that the review
+      declares at least one blocking finding.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  review_cannot_merge:
+    statement: >-
+      The Code Reviewer MUST NOT perform formal approval, protected merge, or Managed
+      Task completion.
+    severity: critical
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+use_cases:
+  review_proposed_change:
+    actor: code_reviewer
+    goal: Determine whether a Proposed Change is safe to progress.
+    given:
+      - The Code Reviewer is independent from the author and deliverer.
+      - The exact Proposed Change revision is known.
+    when:
+      - The Code Reviewer examines the full change and relevant surrounding behavior.
+    then:
+      - Findings are recorded on the Proposed Change.
+      - The Review Verdict matches the number of blocking findings.
+      - The Coordination Daemon receives the attested Review Verdict.
+    otherwise:
+      - Missing evidence or an inconsistent verdict prevents approval.
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+acceptance:
+  independent_attested_review:
+    statement: >-
+      Every Proposed Change MUST receive the configured independent Review Verdicts
+      for its current exact revision before merge.
+    verification: {requires: [deterministic_probe, agent_judgment]}

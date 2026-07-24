@@ -1,0 +1,25 @@
+Managed Task:
+  meaning: Accepted software-delivery work governed through the Quorum lifecycle.
+  forbidden_synonyms:
+    - job
+Coding Run:
+  meaning: One daemon-authorized coding execution assigned to one Managed Task and role.
+Proposed Change:
+  meaning: The branch and pull request produced or revised for one Managed Task.
+Base Revision:
+  meaning: The exact target revision against which a Proposed Change is evaluated.
+Review Verdict:
+  meaning: An attested approval or changes-required result for one Proposed Change revision.
+Delivery Contract:
+  meaning: >-
+    The lifecycle authority, isolation, review, verification, and merge protections
+    every Supported Coding Runner must preserve.
+Supported Coding Runner:
+  meaning: >-
+    A coding execution mechanism proven capable of satisfying the Delivery Contract.
+Required Checks:
+  meaning: Delivery checks that must pass before a Proposed Change may merge.
+Rework Attempt:
+  meaning: Continued implementation responding to blocking evidence on a Proposed Change.
+Delivery Hold:
+  meaning: A durable condition preventing unsafe lifecycle progression.

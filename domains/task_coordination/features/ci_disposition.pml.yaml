@@ -1,0 +1,147 @@
+purpose: >-
+  Distinguish change-caused CI failures from base-branch CI failures and preserve
+  safe task progress for each outcome.
+
+actors:
+  - coordination_daemon
+
+inputs:
+  - The required CI outcome for a proposed change.
+  - The required CI outcome for the exact current base revision.
+  - The managed task, proposed change, review findings, and approval context.
+
+outputs:
+  - A rework assignment when the proposed change caused a CI failure.
+  - A durable CI hold when the base revision is not demonstrably healthy.
+  - Safe automatic resumption after the base revision becomes healthy.
+
+rules:
+  evidence_based_classification:
+    statement: >-
+      The Coordination Daemon MUST classify a proposed-change CI failure using the
+      required CI outcome for the exact current base revision.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  change_failure_gets_worker:
+    statement: >-
+      WHEN required CI passes for the current base revision and fails for the
+      proposed change, THE SYSTEM MUST assign rework to a managed worker.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  absent_worker_is_recreated:
+    statement: >-
+      WHEN rework is required and no worker is active, THE SYSTEM MUST create a
+      worker with the existing proposed change, task context, CI evidence, and
+      review findings.
+    severity: critical
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+  base_failure_holds_task:
+    statement: >-
+      WHEN required CI for the current base revision is red, pending, or unknown,
+      THE SYSTEM MUST hold the affected task without assigning change rework or
+      consuming a rework attempt.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  unhealthy_base_gates_review:
+    statement: >-
+      WHILE the current base revision is not demonstrably healthy, THE SYSTEM MUST
+      NOT start new reviews or merge held proposed changes.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  implementation_remains_available:
+    statement: >-
+      WHILE the current base revision is not demonstrably healthy, THE SYSTEM MUST
+      allow eligible implementation work to proceed.
+    severity: high
+    verification: {requires: [deterministic_probe]}
+
+  repair_change_can_progress:
+    statement: >-
+      WHEN a reviewed proposed change has passing required CI and demonstrably
+      repairs the base CI failure, THE SYSTEM MUST allow that change to progress
+      without waiting for the broken base revision to become healthy.
+    severity: critical
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+use_cases:
+  remediate_change_failure:
+    actor: coordination_daemon
+    goal: Recover a proposed change whose own behavior caused required CI to fail.
+    given:
+      - Required CI is healthy for the exact current base revision.
+      - Required CI has failed for the proposed change.
+    when:
+      - The CI outcomes are classified.
+    then:
+      - The task enters rework.
+      - One managed worker receives the existing proposed change and relevant context.
+      - A changed proposed revision requires fresh review.
+    otherwise:
+      - The task does not become stranded because its original worker is absent.
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+  hold_for_base_ci:
+    actor: coordination_daemon
+    goal: Preserve reviewed work while the current base revision is unhealthy.
+    given:
+      - A task has reached review or merge consideration.
+    when:
+      - Required CI for the exact current base revision is red, pending, or unknown.
+    then:
+      - The task is durably identified as held by base CI.
+      - No rework attempt is consumed.
+      - No worker is assigned merely because base CI is unhealthy.
+      - New review work and ordinary merges remain gated.
+    otherwise:
+      - Missing or unavailable CI evidence is not treated as passing.
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+  resume_after_base_recovery:
+    actor: coordination_daemon
+    goal: Resume held delivery work after base CI recovers.
+    given:
+      - At least one task is held by base CI.
+    when:
+      - The base CI condition is evaluated at intervals no greater than five minutes.
+    then:
+      - A new base revision causes evaluation against that revision.
+      - Held tasks resume after required CI is healthy.
+      - Unchanged unhealthy observations do not duplicate lifecycle effects.
+    otherwise:
+      - Held task context and approvals remain durable across daemon restart.
+    verification: {requires: [deterministic_probe]}
+
+acceptance:
+  change_failure_routes_to_rework:
+    statement: >-
+      A proposed-change CI failure with healthy base CI MUST result in a contextual
+      managed rework assignment.
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+  base_failure_routes_to_hold:
+    statement: >-
+      An unhealthy or unknown base CI result MUST hold affected tasks without
+      attributing the failure to their proposed changes.
+    verification: {requires: [deterministic_probe]}
+
+  holds_release_after_recovery:
+    statement: >-
+      A base-CI-held task MUST become eligible to resume within five minutes after
+      required CI becomes healthy.
+    verification: {requires: [deterministic_probe]}
+
+  hold_survives_restart:
+    statement: >-
+      A base CI hold MUST preserve its task context across coordination-daemon restart.
+    verification: {requires: [deterministic_probe]}
+
+  repair_path_avoids_deadlock:
+    statement: >-
+      A conforming base-CI repair change MUST be able to progress while the base
+      revision remains unhealthy.
+    verification: {requires: [deterministic_probe, agent_judgment]}

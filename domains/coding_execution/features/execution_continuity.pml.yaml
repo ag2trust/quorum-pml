@@ -1,0 +1,132 @@
+purpose: >-
+  Preserve one Delivery Contract across Supported Coding Runners without fabricating
+  unsupported capabilities or allowing runner failures to advance work.
+
+actors:
+  - coordination_daemon
+  - coding_worker
+  - code_reviewer
+
+inputs:
+  - A Managed Task, delivery role, isolated Git context, and scoped run authority.
+  - A configured Supported Coding Runner and its observable execution events.
+  - Prior Coding Run continuation state when work must continue.
+
+outputs:
+  - A normalized authoritative completion or failure outcome.
+  - Durable continuation state sufficient for safe recovery.
+
+produces:
+  - coding_run_failed
+  - coding_run_interrupted
+
+components:
+  run_authority:
+    purpose: Ensure runner-specific execution cannot change lifecycle authority.
+    rules:
+      same_delivery_contract:
+        statement: >-
+          Every Supported Coding Runner MUST satisfy the same Delivery Contract.
+        severity: critical
+        verification: {requires: [deterministic_probe, agent_judgment]}
+      scoped_authority:
+        statement: >-
+          The Coordination Daemon MUST scope each Coding Run to its assigned Managed
+          Task and delivery role.
+        severity: critical
+        verification: {requires: [deterministic_probe]}
+      provider_does_not_merge:
+        statement: >-
+          A Coding Run MUST NOT acquire authority to mark a Managed Task done or
+          perform the protected merge.
+        severity: critical
+        verification: {requires: [deterministic_probe]}
+      unsupported_limit_rejected:
+        statement: >-
+          The Coordination Daemon MUST reject startup when a configured safety limit
+          cannot be enforced by the selected Supported Coding Runner.
+        severity: critical
+        verification: {requires: [deterministic_probe]}
+    acceptance:
+      equivalent_runner_authority:
+        statement: >-
+          Changing the Supported Coding Runner MUST NOT change task, review, or merge
+          authority.
+        verification: {requires: [deterministic_probe, agent_judgment]}
+
+  failure_and_recovery:
+    purpose: Make runner interruption, failure, and continuation explicit and fail-safe.
+    rules:
+      continuation_is_durable:
+        statement: >-
+          The Coordination Daemon MUST durably associate runner continuation state
+          with its Coding Run before relying on later continuation.
+        severity: critical
+        verification: {requires: [deterministic_probe]}
+      unknown_events_are_inert:
+        statement: >-
+          Unknown runner events MUST NOT advance a Managed Task's lifecycle.
+        severity: critical
+        verification: {requires: [deterministic_probe]}
+      missing_telemetry_not_fabricated:
+        statement: >-
+          The Coordination Daemon MUST NOT fabricate unavailable runner usage or cost
+          telemetry.
+        severity: high
+        verification: {requires: [deterministic_probe]}
+      termination_is_not_success:
+        statement: >-
+          A Coding Run that terminates without an authoritative completion signal
+          MUST NOT advance its Managed Task toward merge or completion.
+        severity: critical
+        verification: {requires: [deterministic_probe]}
+      restart_is_fail_safe:
+        statement: >-
+          ON FAILURE, THE SYSTEM MUST resume a Coding Run safely or reprovision work
+          without weakening lifecycle protections.
+        severity: critical
+        verification: {requires: [deterministic_probe, agent_judgment]}
+    acceptance:
+      runner_failure_is_fail_safe:
+        statement: >-
+          Runner startup, authentication, quota, protocol, or execution failure MUST
+          preserve the Managed Task without unsafe lifecycle progression.
+        verification: {requires: [deterministic_probe]}
+
+rules:
+  terminal_signal_is_authoritative:
+    statement: >-
+      The Coordination Daemon MUST derive Coding Run success or failure from an
+      authoritative terminal signal and process outcome.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+use_cases:
+  continue_after_feedback:
+    actor: coding_worker
+    goal: Continue the same Managed Task after blocking review feedback.
+    given:
+      - A Proposed Change requires rework.
+      - Durable continuation state exists for the implementation Coding Run.
+    when:
+      - The Coordination Daemon delivers the blocking feedback.
+    then:
+      - The Coding Worker continues against the existing Proposed Change.
+      - Lifecycle authority remains with the Coordination Daemon.
+    otherwise:
+      - The Coordination Daemon reprovisions the work without treating interruption as success.
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+acceptance:
+  equivalent_delivery_contract:
+    statement: >-
+      Every Supported Coding Runner MUST complete implementation, independent review,
+      rework, and completion signaling without changing lifecycle authority or merge
+      protections.
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+  unsupported_capability_is_loud:
+    statement: >-
+      A configured runner capability that cannot be enforced MUST fail loudly before
+      affected work begins.
+    verification: {requires: [deterministic_probe]}

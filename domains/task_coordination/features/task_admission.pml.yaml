@@ -1,0 +1,83 @@
+purpose: >-
+  Admit software-delivery work only when its responsibility and delivery path are
+  unambiguous.
+
+actors:
+  - task_author
+  - coordination_daemon
+
+inputs:
+  - A requested software-delivery outcome and its constraints.
+  - Optional task dependencies or an existing Proposed Change.
+
+outputs:
+  - An accepted Managed Task with one delivery responsibility.
+  - A loud rejection of invalid or ambiguous work.
+
+produces:
+  - task_accepted
+
+rules:
+  outcome_is_required:
+    statement: >-
+      The Task Author MUST provide an observable software-delivery outcome for every
+      Managed Task.
+    severity: high
+    verification: {requires: [agent_judgment]}
+
+  responsibility_is_unambiguous:
+    statement: >-
+      The Coordination Daemon MUST distinguish implementation work from review-only
+      work before execution begins.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  dependencies_gate_execution:
+    statement: >-
+      WHILE a required Managed Task dependency is incomplete, THE SYSTEM MUST block
+      dependent implementation.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+  cancellation_stops_provisioning:
+    statement: >-
+      WHEN a Managed Task is cancelled, THE SYSTEM MUST NOT provision a new Coding
+      Run for it.
+    severity: critical
+    verification: {requires: [deterministic_probe]}
+
+use_cases:
+  admit_implementation_work:
+    actor: task_author
+    goal: Submit bounded implementation work for autonomous Git delivery.
+    given:
+      - The desired outcome and relevant constraints are known.
+    when:
+      - The Task Author creates an implementation Managed Task.
+    then:
+      - The Managed Task becomes eligible after its dependencies complete.
+      - The Coordination Daemon owns implementation through merge.
+    otherwise:
+      - Invalid dependencies or ambiguous responsibility are rejected.
+    verification: {requires: [deterministic_probe, agent_judgment]}
+
+  admit_review_only_work:
+    actor: task_author
+    goal: Submit an existing Proposed Change for managed independent review.
+    given:
+      - Implementation already exists as a Proposed Change.
+    when:
+      - The Task Author creates review-only work.
+    then:
+      - The Managed Task begins at independent review.
+      - No implementation Coding Run is provisioned initially.
+    otherwise:
+      - A missing or invalid Proposed Change is rejected.
+    verification: {requires: [deterministic_probe]}
+
+acceptance:
+  one_delivery_responsibility:
+    statement: >-
+      Every accepted Managed Task MUST have exactly one implementation or review-only
+      delivery responsibility.
+    verification: {requires: [deterministic_probe]}
