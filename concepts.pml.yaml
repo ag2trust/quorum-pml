@@ -3,6 +3,10 @@ managed_task:
     Accepted software-delivery work governed through distinct open, planning,
     decomposed, working, in-review, rework, merging, done, terminal-failure, and
     cancelled lifecycle states.
+admission_ready:
+  meaning: >-
+    A classifier decision that work is sufficiently clear and bounded for its assigned
+    delivery path, distinct from runtime dependency eligibility.
 coding_run:
   meaning: One daemon-authorized coding execution assigned to one Managed Task and role.
   states:

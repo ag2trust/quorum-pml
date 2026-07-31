@@ -2,6 +2,10 @@ Managed Task:
   meaning: Accepted software-delivery work governed through the Quorum lifecycle.
   forbidden_synonyms:
     - job
+Admission Ready:
+  meaning: >-
+    A classifier decision that a Managed Task is sufficiently clear and bounded for its
+    assigned delivery path, independent of runtime dependency eligibility.
 Coding Run:
   meaning: One daemon-authorized coding execution assigned to one Managed Task and role.
 Proposed Change:

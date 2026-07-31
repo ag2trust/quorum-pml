@@ -1,5 +1,5 @@
 purpose: >-
-  Decompose ready large implementation work into one bounded Task Graph before
+  Decompose admission-ready large implementation work into one bounded Task Graph before
   implementation begins without expanding product intent or weakening delivery safety.
 
 actors:
@@ -19,11 +19,11 @@ components:
     rules:
       large_implementation_requires_planning:
         statement: >-
-          THE SYSTEM MUST route every ready implementation Managed Task of size L or XL
+          THE SYSTEM MUST route every Admission Ready implementation Managed Task of size L or XL
           to decomposition planning before implementation.
       bounded_implementation_avoids_planning:
         statement: >-
-          THE SYSTEM MUST NOT require decomposition planning for a ready implementation
+          THE SYSTEM MUST NOT require decomposition planning for an Admission Ready implementation
           Managed Task of size S or M merely because of its complexity.
       review_only_work_is_not_decomposed:
         statement: >-
@@ -185,8 +185,8 @@ components:
           generated Managed Task.
       proposed_work_is_ready:
         statement: >-
-          Every proposed Managed Task MUST be ready before its Decomposition Plan is
-          accepted.
+          Every proposed Managed Task MUST be Admission Ready before its Decomposition
+          Plan is accepted, independent of runtime dependency eligibility.
       proposed_work_is_bounded:
         statement: >-
           Every proposed Managed Task MUST have size S or M before its Decomposition Plan
@@ -653,9 +653,9 @@ components:
 use_cases:
   decompose_large_work:
     actor: coordination_daemon
-    goal: Convert one ready large implementation outcome into bounded delivery work.
+    goal: Convert one Admission Ready large implementation outcome into bounded delivery work.
     given:
-      - The source Managed Task is ready and has size L or XL.
+      - The source Managed Task is Admission Ready and has size L or XL.
       - Every source dependency is done.
       - No other source Task Graph is active.
     when:
@@ -672,7 +672,7 @@ use_cases:
     goal: Complete the source outcome through its accepted Task Graph.
     given:
       - One complete Task Graph is durably materialized.
-      - Every generated Managed Task is ready and has size S or M.
+      - Every generated Managed Task is Admission Ready and has size S or M.
     when:
       - Generated work becomes eligible under its dependencies.
     then:
