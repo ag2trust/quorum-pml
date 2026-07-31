@@ -1,18 +1,11 @@
 managed_task:
-  term: Managed Task
-  owned_by: Coordination Daemon
-  lifecycle:
-    - open
-    - working
-    - in review
-    - rework
-    - merging
-    - done
-    - terminal failure
+  meaning: >-
+    Accepted software-delivery work governed through distinct open, planning,
+    decomposed, working, in-review, rework, merging, done, terminal-failure, and
+    cancelled lifecycle states.
 coding_run:
-  term: Coding Run
-  owned_by: Coordination Daemon
-  lifecycle:
+  meaning: One daemon-authorized coding execution assigned to one Managed Task and role.
+  states:
     - starting
     - active
     - awaiting signal
@@ -20,9 +13,8 @@ coding_run:
     - failed
     - finished
 proposed_change:
-  term: Proposed Change
-  owned_by: Repository Service
-  lifecycle:
+  meaning: The branch and pull request produced or revised for one Managed Task.
+  states:
     - open
     - under review
     - changes required
@@ -30,11 +22,23 @@ proposed_change:
     - merged
     - closed
 base_revision:
-  term: Base Revision
-  owned_by: Repository Service
+  meaning: The exact target revision against which a Proposed Change is evaluated.
 review_verdict:
-  term: Review Verdict
-  owned_by: Coordination Daemon
+  meaning: An attested approval or changes-required result for one Proposed Change revision.
 delivery_hold:
-  term: Delivery Hold
-  owned_by: Coordination Daemon
+  meaning: A durable condition preventing unsafe lifecycle progression.
+decomposition_plan:
+  meaning: A bounded proposal for an acyclic set of smaller implementation Managed Tasks.
+  states:
+    - proposed
+    - rejected
+    - accepted
+task_graph:
+  meaning: Accepted generated Managed Tasks, source relationship, and delivery dependencies.
+  states:
+    - active
+    - blocked
+    - done
+    - cancelled
+planning_blocker:
+  meaning: Evidence that safe decomposition requires clarification or owner intervention.

@@ -1,93 +1,51 @@
-purpose: >-
-  Route blocking review findings into accountable revision of the existing Proposed
-  Change.
-
+purpose: Route blocking review findings into accountable revision of the existing
+  Proposed Change.
 actors:
-  - coordination_daemon
-  - coding_worker
-  - code_reviewer
-
-inputs:
-  - A changes-required Review Verdict and its blocking findings.
-  - The existing Proposed Change and Managed Task context.
-
-outputs:
-  - A revised Proposed Change ready for fresh independent review.
-  - A loud terminal failure when rework limits are exhausted.
-
-consumes:
-  - review_changes_required
-  - proposed_revision_changed
-
+- coordination_daemon
+- coding_worker
+- code_reviewer
 rules:
   blockers_require_rework:
-    statement: >-
-      WHEN a Review Verdict requires changes, THE SYSTEM MUST return the Managed Task
-      to implementation with its blocking findings.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: WHEN a Review Verdict requires changes, THE SYSTEM MUST return the
+      Managed Task to implementation with its blocking findings.
   existing_change_is_reused:
-    statement: >-
-      The Coding Worker MUST revise the existing Proposed Change instead of opening a
-      replacement Proposed Change.
-    severity: high
-    verification: {requires: [deterministic_probe, agent_judgment]}
-
+    statement: The Coding Worker MUST revise the existing Proposed Change instead
+      of opening a replacement Proposed Change.
   every_blocker_is_resolved:
-    statement: >-
-      The Coding Worker MUST fix or rebut every blocking finding with concrete evidence.
-    severity: critical
-    verification: {requires: [deterministic_probe, agent_judgment]}
-
+    statement: The Coding Worker MUST fix or rebut every blocking finding with concrete
+      evidence.
   changed_revision_invalidates_approval:
-    statement: >-
-      WHEN the Proposed Change revision changes, THE SYSTEM MUST invalidate prior
-      approval for the earlier revision.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: WHEN the Proposed Change revision changes, THE SYSTEM MUST invalidate
+      prior approval for the earlier revision.
   rework_requires_fresh_review:
-    statement: >-
-      WHEN a Rework Attempt produces a new revision, THE SYSTEM MUST require fresh
-      independent review.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: WHEN a Rework Attempt produces a new revision, THE SYSTEM MUST require
+      fresh independent review.
   absent_worker_does_not_strand:
-    statement: >-
-      WHEN rework is required and the original Coding Worker is absent, THE SYSTEM
-      MUST provision a Coding Worker with the existing Proposed Change and findings.
-    severity: critical
-    verification: {requires: [deterministic_probe, agent_judgment]}
-
+    statement: WHEN rework is required and the original Coding Worker is absent, THE
+      SYSTEM MUST provision a Coding Worker with the existing Proposed Change and
+      findings.
   exhausted_rework_fails_loudly:
-    statement: >-
-      WHEN the permitted Rework Attempts are exhausted, THE SYSTEM MUST fail the
-      Managed Task loudly without merging it.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: WHEN the permitted Rework Attempts are exhausted, THE SYSTEM MUST fail
+      the Managed Task loudly without merging it.
 use_cases:
   revise_after_review:
     actor: coding_worker
     goal: Resolve blocking findings on the existing Proposed Change.
     given:
-      - A Review Verdict requires changes.
-      - The blocking findings and existing Proposed Change are available.
+    - A Review Verdict requires changes.
+    - The blocking findings and existing Proposed Change are available.
     when:
-      - The Coding Worker performs a Rework Attempt.
+    - The Coding Worker performs a Rework Attempt.
     then:
-      - Every blocking finding is fixed or rebutted with evidence.
-      - The existing Proposed Change receives a new revision.
-      - Fresh independent review is required.
+    - Every blocking finding is fixed or rebutted with evidence.
+    - The existing Proposed Change receives a new revision.
+    - Fresh independent review is required.
     otherwise:
-      - Unresolved findings continue to block merge.
-    verification: {requires: [deterministic_probe, agent_judgment]}
-
-acceptance:
-  rework_preserves_accountability:
-    statement: >-
-      Every Rework Attempt MUST preserve a durable outcome for each blocking finding
-      and receive fresh review before merge.
-    verification: {requires: [deterministic_probe, agent_judgment]}
+    - Unresolved findings continue to block merge.
+components:
+  acceptance_outcomes:
+    purpose: Preserve the feature outcomes required for conforming delivery.
+    rules:
+      rework_preserves_accountability:
+        statement: Every Rework Attempt MUST preserve a durable outcome for each blocking
+          finding and receive fresh review before merge.

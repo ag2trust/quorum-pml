@@ -1,98 +1,51 @@
-purpose: >-
-  Merge only the exact Proposed Change revision that has current independent approval
-  and passing Required Checks.
-
+purpose: Merge only the exact Proposed Change revision that has current independent
+  approval and passing Required Checks.
 actors:
-  - coordination_daemon
-  - repository_service
-
-inputs:
-  - The current Proposed Change revision.
-  - Required independent Review Verdicts.
-  - Required Checks and mergeability state from the Repository Service.
-
-outputs:
-  - A safely merged Proposed Change and completed Managed Task.
-  - A durable hold, rework transition, or loud failure when merge is unsafe.
-
-consumes:
-  - review_approved
-  - required_checks_passed
-  - required_checks_failed
-
-produces:
-  - merge_completed
-
+- coordination_daemon
+- repository_service
+emits:
+- merge_completed
 rules:
   all_reviews_are_required:
-    statement: >-
-      The Coordination Daemon MUST require every configured independent approval
+    statement: The Coordination Daemon MUST require every configured independent approval
       before protected merge.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
   approval_matches_revision:
-    statement: >-
-      The Coordination Daemon MUST verify that every approval attests to the current
-      exact Proposed Change revision.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: The Coordination Daemon MUST verify that every approval attests to
+      the current exact Proposed Change revision.
   checks_gate_merge:
-    statement: >-
-      WHILE Required Checks are not passing, THE SYSTEM MUST block ordinary protected
-      merge.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: WHILE Required Checks are not passing, THE SYSTEM MUST block ordinary
+      protected merge.
   daemon_owns_merge:
-    statement: >-
-      The Coordination Daemon MUST retain exclusive lifecycle authority for formal
-      approval and protected merge.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: The Coordination Daemon MUST retain exclusive lifecycle authority for
+      formal approval and protected merge.
   merge_is_completion_authority:
-    statement: >-
-      The Coordination Daemon MUST NOT mark a Managed Task done before the Repository
-      Service confirms merge.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: The Coordination Daemon MUST NOT mark a Managed Task done before the
+      Repository Service confirms merge.
   unsafe_merge_does_not_complete:
-    statement: >-
-      ON FAILURE, THE SYSTEM MUST preserve or transition the Managed Task without
-      falsely recording merge completion.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: ON FAILURE, THE SYSTEM MUST preserve or transition the Managed Task
+      without falsely recording merge completion.
   merge_state_survives_restart:
-    statement: >-
-      The Coordination Daemon MUST preserve current approvals and merge consideration
+    statement: The Coordination Daemon MUST preserve current approvals and merge consideration
       safely across restart.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
 use_cases:
   merge_reviewed_change:
     actor: coordination_daemon
     goal: Merge a fully reviewed and verified Proposed Change safely.
     given:
-      - Every configured independent Review Verdict approves the current revision.
-      - Required Checks pass for the current revision.
-      - The Proposed Change is mergeable.
+    - Every configured independent Review Verdict approves the current revision.
+    - Required Checks pass for the current revision.
+    - The Proposed Change is mergeable.
     when:
-      - The Coordination Daemon evaluates protected merge.
+    - The Coordination Daemon evaluates protected merge.
     then:
-      - The Coordination Daemon performs formal approval and merge.
-      - Repository Service merge confirmation completes the Managed Task.
+    - The Coordination Daemon performs formal approval and merge.
+    - Repository Service merge confirmation completes the Managed Task.
     otherwise:
-      - The Managed Task remains unmerged and incomplete with a visible disposition.
-    verification: {requires: [deterministic_probe]}
-
-acceptance:
-  only_safe_revision_merges:
-    statement: >-
-      Only a current Proposed Change revision with every required approval and passing
-      Required Checks MUST become merged and complete.
-    verification: {requires: [deterministic_probe]}
+    - The Managed Task remains unmerged and incomplete with a visible disposition.
+components:
+  acceptance_outcomes:
+    purpose: Preserve the feature outcomes required for conforming delivery.
+    rules:
+      only_safe_revision_merges:
+        statement: Only a current Proposed Change revision with every required approval
+          and passing Required Checks MUST become merged and complete.

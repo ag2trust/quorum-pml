@@ -1,3 +1,2 @@
-purpose: >-
-  Execute coding work in isolated Git contexts while preserving delivery authority,
+purpose: Execute coding work in isolated Git contexts while preserving delivery authority,
   continuation, and fail-safe recovery across supported coding runners.

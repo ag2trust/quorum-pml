@@ -23,3 +23,23 @@ Rework Attempt:
   meaning: Continued implementation responding to blocking evidence on a Proposed Change.
 Delivery Hold:
   meaning: A durable condition preventing unsafe lifecycle progression.
+Planning Agent:
+  meaning: >-
+    A frontier-model, repository-aware, read-only coding execution authorized to
+    propose bounded implementation work for one oversized Managed Task.
+Decomposition Plan:
+  meaning: >-
+    A bounded proposal that maps one oversized Managed Task into an acyclic set of
+    smaller implementation Managed Tasks and their delivery dependencies.
+Task Graph:
+  meaning: >-
+    The accepted set of generated Managed Tasks, their source relationship, and their
+    delivery dependencies.
+Planning Blocker:
+  meaning: >-
+    Concrete evidence that a Managed Task cannot be decomposed safely without changed
+    intent, additional information, or owner intervention.
+Frontier Planning Model:
+  meaning: >-
+    The owner-approved highest-capability model for repository-aware planning on a
+    supported provider.

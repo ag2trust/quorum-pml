@@ -1,86 +1,50 @@
-purpose: >-
-  Execute each Managed Task in an isolated Git context without corrupting concurrent work.
-
+purpose: Execute each Managed Task in an isolated Git context without corrupting concurrent
+  work.
 actors:
-  - coordination_daemon
-  - coding_worker
-
-inputs:
-  - An accepted Managed Task with an observable outcome and constraints.
-  - The configured Base Revision.
-  - An available Supported Coding Runner.
-
-outputs:
-  - One isolated implementation context assigned to the Managed Task.
-  - A Proposed Change or a loud execution failure.
-
-produces:
-  - implementation_started
-  - coding_run_failed
-  - coding_run_interrupted
-
+- coordination_daemon
+- coding_worker
+emits:
+- implementation_started
+- coding_run_failed
+- coding_run_interrupted
 rules:
   one_task_per_run:
-    statement: >-
-      The Coordination Daemon MUST assign each Coding Run to exactly one Managed Task
-      and one delivery role.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: The Coordination Daemon MUST assign each Coding Run to exactly one
+      Managed Task and one delivery role.
   isolated_git_context:
-    statement: >-
-      The Coordination Daemon MUST provide each implementation Coding Run with a
-      branch and isolated Git context not active for another Managed Task.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: The Coordination Daemon MUST provide each implementation Coding Run
+      with a branch and isolated Git context not active for another Managed Task.
   configured_base:
-    statement: >-
-      The Coordination Daemon MUST begin new implementation from the configured Base
-      Revision.
-    severity: high
-    verification: {requires: [deterministic_probe]}
-
+    statement: The Coordination Daemon MUST begin new implementation from the configured
+      Base Revision.
   completion_requires_change:
-    statement: >-
-      The Coordination Daemon MUST NOT treat assistant output as completion without
-      an authoritative Proposed Change signal.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: The Coordination Daemon MUST NOT treat assistant output as completion
+      without an authoritative Proposed Change signal.
   failure_preserves_safety:
-    statement: >-
-      ON FAILURE, THE SYSTEM MUST preserve the Managed Task without marking it done
-      or eligible to merge.
-    severity: critical
-    verification: {requires: [deterministic_probe]}
-
+    statement: ON FAILURE, THE SYSTEM MUST preserve the Managed Task without marking
+      it done or eligible to merge.
 use_cases:
   implement_managed_task:
     actor: coding_worker
     goal: Produce a reviewable Proposed Change for one accepted Managed Task.
     given:
-      - The Managed Task is eligible for implementation.
-      - The Coding Run has an isolated Git context and scoped run authority.
+    - The Managed Task is eligible for implementation.
+    - The Coding Run has an isolated Git context and scoped run authority.
     when:
-      - The Coding Worker implements and verifies the required outcome.
+    - The Coding Worker implements and verifies the required outcome.
     then:
-      - The Coding Worker pushes the assigned branch.
-      - The Coding Worker opens or updates one Proposed Change.
-      - The Coding Worker signals the Proposed Change to the Coordination Daemon.
+    - The Coding Worker pushes the assigned branch.
+    - The Coding Worker opens or updates one Proposed Change.
+    - The Coding Worker signals the Proposed Change to the Coordination Daemon.
     otherwise:
-      - The Managed Task remains incomplete and cannot progress to merge.
-    verification: {requires: [deterministic_probe, agent_judgment]}
-
-acceptance:
-  concurrent_work_is_isolated:
-    statement: >-
-      Concurrent implementation Coding Runs MUST NOT share an active branch or Git
-      context.
-    verification: {requires: [deterministic_probe]}
-
-  output_is_not_completion:
-    statement: >-
-      A Coding Run response without an authoritative Proposed Change signal MUST NOT
-      advance its Managed Task to review.
-    verification: {requires: [deterministic_probe]}
+    - The Managed Task remains incomplete and cannot progress to merge.
+components:
+  acceptance_outcomes:
+    purpose: Preserve the feature outcomes required for conforming delivery.
+    rules:
+      concurrent_work_is_isolated:
+        statement: Concurrent implementation Coding Runs MUST NOT share an active
+          branch or Git context.
+      output_is_not_completion:
+        statement: A Coding Run response without an authoritative Proposed Change
+          signal MUST NOT advance its Managed Task to review.

@@ -1,0 +1,712 @@
+purpose: >-
+  Decompose ready large implementation work into one bounded Task Graph before
+  implementation begins without expanding product intent or weakening delivery safety.
+
+actors:
+  - task_author
+  - coordination_daemon
+  - planning_agent
+
+emits:
+  - planning_started
+  - decomposition_materialized
+  - decomposition_blocked
+  - task_graph_completed
+
+components:
+  admission:
+    purpose: Route only eligible large implementation work into decomposition.
+    rules:
+      large_implementation_requires_planning:
+        statement: >-
+          THE SYSTEM MUST route every ready implementation Managed Task of size L or XL
+          to decomposition planning before implementation.
+      bounded_implementation_avoids_planning:
+        statement: >-
+          THE SYSTEM MUST NOT require decomposition planning for a ready implementation
+          Managed Task of size S or M merely because of its complexity.
+      review_only_work_is_not_decomposed:
+        statement: >-
+          THE SYSTEM MUST hold review-only work of size L or XL for external splitting.
+      dependencies_finish_before_planning:
+        statement: >-
+          THE SYSTEM MUST NOT start decomposition planning while a source Managed Task
+          has an incomplete dependency.
+      planning_waits_for_drain:
+        statement: >-
+          THE SYSTEM MUST stop starting new managed delivery work before decomposition
+          planning begins.
+      active_work_drains_before_planning:
+        statement: >-
+          THE SYSTEM MUST allow active managed delivery work to finish before
+          decomposition planning begins.
+      one_active_graph_per_repository:
+        statement: >-
+          THE SYSTEM MUST NOT activate a second decomposed source while another source
+          Task Graph remains active in the repository.
+
+  planner_authority:
+    purpose: Give one capable planner enough context without delivery authority.
+    rules:
+      planner_receives_source_context:
+        statement: >-
+          THE SYSTEM MUST provide the Planning Agent with the source outcome and
+          constraints.
+      planner_receives_repository_context:
+        statement: >-
+          THE SYSTEM MUST provide the Planning Agent with repository instructions and a
+          read-only repository view after source dependencies finish.
+      planner_cannot_route_work:
+        statement: >-
+          THE Planning Agent MUST NOT assign authoritative routing metadata to proposed
+          work.
+      planner_preserves_intent:
+        statement: >-
+          THE Planning Agent MUST preserve every source outcome and constraint without
+          adding unrelated product scope.
+
+      codex_planning_uses_sol:
+        statement: THE SYSTEM MUST use Sol for decomposition planning through Codex.
+      claude_planning_uses_opus:
+        statement: THE SYSTEM MUST use Opus for decomposition planning through Claude.
+      planning_uses_high_reasoning:
+        statement: THE SYSTEM MUST use high reasoning capability for decomposition planning.
+
+  planner_sandbox:
+    purpose: Bound planning inspection and resource use.
+    rules:
+      planner_has_read_only_repository:
+        statement: THE Planning Agent MUST receive only read access to the repository.
+      planner_has_no_network:
+        statement: THE Planning Agent MUST NOT receive network access.
+      planner_has_no_coordination_access:
+        statement: THE Planning Agent MUST NOT receive access to coordination commands.
+      planner_has_no_database_access:
+        statement: THE Planning Agent MUST NOT receive database access.
+      planner_output_is_closed:
+        statement: >-
+          THE SYSTEM MUST accept planner output only through the defined Decomposition
+          Plan or Planning Blocker structure.
+      planner_output_is_bounded:
+        statement: THE SYSTEM MUST bound Planning Agent output.
+      planner_call_has_timeout:
+        statement: THE SYSTEM MUST bound every Planning Agent call with a hard timeout.
+
+  planner_outcomes:
+    purpose: Permit either a safe proposal or a concrete blocker.
+    rules:
+      planner_returns_closed_outcome:
+        statement: >-
+          THE Planning Agent MUST return either one Decomposition Plan or one Planning
+          Blocker.
+      unsafe_decomposition_is_blocked:
+        statement: >-
+          THE Planning Agent MUST return a Planning Blocker when it cannot identify safe
+          delivery boundaries within the accepted source scope.
+      blocker_is_concrete:
+        statement: >-
+          Every Planning Blocker MUST identify a focused blocker category, supporting
+          evidence, required clarification or scope decision, and why safe S or M
+          decomposition is impossible.
+      valid_blocker_holds_source:
+        statement: >-
+          THE SYSTEM MUST hold the source Managed Task when the Planning Agent returns a
+          valid Planning Blocker.
+      blocker_gets_no_second_opinion:
+        statement: >-
+          THE SYSTEM MUST NOT request another planning opinion after a valid Planning
+          Blocker.
+      planner_cannot_materialize:
+        statement: >-
+          THE Planning Agent MUST NOT create generated Managed Tasks.
+
+  plan_shape:
+    purpose: Bound the proposed graph and preserve complete source coverage.
+    rules:
+      plan_has_bounded_task_count:
+        statement: >-
+          Every accepted Decomposition Plan MUST contain between two and eight proposed
+          implementation Managed Tasks inclusive.
+      plan_has_complete_references:
+        statement: >-
+          Every dependency in an accepted Decomposition Plan MUST reference proposed
+          work in that plan or a dependency of the source.
+      plan_has_no_cycle:
+        statement: Every accepted Decomposition Plan MUST NOT contain a dependency cycle.
+      plan_has_no_self_dependency:
+        statement: >-
+          Every proposed Managed Task MUST NOT depend on itself.
+      dependencies_are_prerequisites:
+        statement: >-
+          Every dependency in a Decomposition Plan MUST represent a delivery prerequisite.
+      independent_work_remains_independent:
+        statement: >-
+          A Decomposition Plan MUST NOT impose dependencies between independently
+          deliverable proposed tasks.
+      source_coverage_is_complete:
+        statement: >-
+          Every source outcome and constraint MUST be assigned to at least one proposed
+          Managed Task in an accepted Decomposition Plan.
+
+  proposed_task_identity:
+    purpose: Give every proposed task a unique traceable responsibility.
+    rules:
+      proposed_identifier_is_unique:
+        statement: >-
+          Every proposed Managed Task MUST have a unique identifier within its
+          Decomposition Plan.
+      proposed_outcome_is_observable:
+        statement: Every proposed Managed Task MUST define an observable outcome.
+      proposed_acceptance_is_explicit:
+        statement: Every proposed Managed Task MUST define acceptance criteria.
+      proposed_constraints_are_explicit:
+        statement: >-
+          Every proposed Managed Task MUST identify the source constraints that apply to
+          it.
+      proposed_verification_is_explicit:
+        statement: Every proposed Managed Task MUST define verification expectations.
+      proposed_task_is_not_noop:
+        statement: Every proposed Managed Task MUST define non-empty delivery work.
+      integration_work_is_real:
+        statement: >-
+          A Decomposition Plan MUST include an integration task only when integration is
+          an independently deliverable outcome.
+
+  plan_validation:
+    purpose: Validate the complete proposal before any generated work exists.
+    rules:
+      proposed_work_contributes_to_source:
+        statement: >-
+          Every proposed Managed Task in an accepted Decomposition Plan MUST contribute
+          to the source outcome.
+      proposed_work_is_preclassified:
+        statement: >-
+          THE SYSTEM MUST classify every proposed Managed Task before creating any
+          generated Managed Task.
+      proposed_work_is_ready:
+        statement: >-
+          Every proposed Managed Task MUST be ready before its Decomposition Plan is
+          accepted.
+      proposed_work_is_bounded:
+        statement: >-
+          Every proposed Managed Task MUST have size S or M before its Decomposition Plan
+          is accepted.
+      duplicate_rejects_plan:
+        statement: >-
+          THE SYSTEM MUST reject the complete Decomposition Plan when proposed work
+          duplicates existing work.
+      duplicate_does_not_change_existing_work:
+        statement: >-
+          THE SYSTEM MUST NOT modify existing work when rejecting a duplicate proposal.
+      invalid_scope_rejects_plan:
+        statement: >-
+          THE SYSTEM MUST reject a Decomposition Plan that expands, weakens, or fails to
+          cover the source intent.
+
+  planning_limits:
+    purpose: Bound semantic retries and provider failures independently.
+    rules:
+      proposals_are_bounded:
+        statement: >-
+          THE SYSTEM MUST allow no more than three complete Decomposition Plan proposals
+          for one unchanged source revision.
+      rejected_plan_creates_nothing:
+        statement: >-
+          THE SYSTEM MUST NOT create a generated Managed Task from a rejected
+          Decomposition Plan.
+      exhausted_proposals_hold_source:
+        statement: >-
+          THE SYSTEM MUST hold the source Managed Task after three rejected
+          Decomposition Plan proposals.
+      exhausted_proposals_preserve_evidence:
+        statement: >-
+          THE SYSTEM MUST preserve the final rejection reasons when proposal attempts
+          are exhausted.
+      provider_failures_do_not_consume_proposals:
+        statement: >-
+          THE SYSTEM MUST NOT count a planning provider failure as a rejected
+          Decomposition Plan.
+      unchanged_blocked_input_is_not_retried:
+        statement: >-
+          THE SYSTEM MUST NOT retry a planner-blocked source until the source is edited.
+      planning_model_does_not_downgrade:
+        statement: >-
+          THE SYSTEM MUST NOT substitute a lower-capability planning model when the
+          approved Frontier Planning Model is unavailable.
+
+  repository_freeze:
+    purpose: Plan and validate against a stable managed repository state.
+    rules:
+      planning_freezes_managed_delivery:
+        statement: >-
+          THE SYSTEM MUST prevent other managed delivery work from changing the
+          repository while a Decomposition Plan is proposed, validated, and classified.
+      rejected_plan_keeps_freeze:
+        statement: >-
+          THE SYSTEM MUST preserve the managed delivery freeze while the planner revises
+          a rejected Decomposition Plan.
+      provider_failure_releases_freeze:
+        statement: >-
+          THE SYSTEM MUST release the managed delivery freeze during planning provider
+          backoff.
+      provider_retry_drains_again:
+        statement: >-
+          THE SYSTEM MUST drain active managed delivery work again before retrying a
+          failed planning provider call.
+      successful_materialization_releases_freeze:
+        statement: >-
+          THE SYSTEM MUST release the managed delivery freeze after the complete Task
+          Graph is durably materialized.
+      blocked_planning_releases_freeze:
+        statement: >-
+          THE SYSTEM MUST release the managed delivery freeze after planning holds the
+          source.
+
+  materialization:
+    purpose: Create one complete classified graph as an atomic lifecycle transition.
+    rules:
+      one_graph_per_source:
+        statement: >-
+          THE SYSTEM MUST NOT create more than one Task Graph for one source Managed Task.
+      materialization_is_atomic:
+        statement: >-
+          THE SYSTEM MUST create all generated Managed Tasks and Task Graph relationships
+          atomically.
+      classifications_materialize_atomically:
+        statement: >-
+          THE SYSTEM MUST attach every accepted generated-task classification in the
+          same atomic materialization.
+      implementation_waits_for_complete_graph:
+        statement: >-
+          THE SYSTEM MUST NOT start generated implementation before the complete
+          accepted Task Graph is durably materialized.
+      source_becomes_coordinator:
+        statement: >-
+          THE SYSTEM MUST keep the source Managed Task decomposed while its Task Graph is
+          active.
+      source_receives_no_delivery:
+        statement: >-
+          THE SYSTEM MUST NOT assign implementation or review work to a decomposed source
+          Managed Task.
+      children_keep_provenance:
+        statement: >-
+          Every generated Managed Task MUST identify its source, Planning Agent, and
+          accepted plan revision.
+
+  single_level_materialization:
+    purpose: Materialize one level automatically without recursive orchestration.
+    rules:
+      generated_tasks_are_not_decomposed:
+        statement: THE SYSTEM MUST NOT decompose a generated Managed Task.
+      accepted_plan_materializes_automatically:
+        statement: >-
+          THE SYSTEM MUST materialize a fully valid and fully preclassified
+          Decomposition Plan without owner approval.
+      accepted_plan_creates_one_graph:
+        statement: >-
+          A fully valid Decomposition Plan MUST produce exactly one Task Graph for its
+          source Managed Task.
+
+  source_revision:
+    purpose: Restart admission safely before materialization and lock scope afterward.
+    rules:
+      edit_stops_pending_work:
+        statement: >-
+          THE SYSTEM MUST stop pending classification and planning when an authorized
+          source edit succeeds before materialization.
+      edit_discards_pending_artifacts:
+        statement: >-
+          THE SYSTEM MUST discard pending classification and planning artifacts after an
+          authorized pre-materialization source edit.
+      edit_restarts_admission:
+        statement: >-
+          THE SYSTEM MUST restart admission for the updated source revision after an
+          authorized pre-materialization source edit.
+      edit_count_is_bounded:
+        statement: >-
+          THE SYSTEM MUST reject a fourth edit to a source Managed Task.
+      edit_lock_does_not_stop_latest_revision:
+        statement: >-
+          THE SYSTEM MUST continue processing the latest accepted source revision after
+          rejecting a fourth edit.
+      materialized_source_is_immutable:
+        statement: >-
+          THE SYSTEM MUST reject changes to source scope after Task Graph materialization.
+      materialized_children_are_immutable:
+        statement: >-
+          THE SYSTEM MUST reject changes to generated task scope or dependencies after
+          Task Graph materialization.
+
+  edit_consistency:
+    purpose: Make each accepted source edit one bounded atomic admission revision.
+    rules:
+      edit_requires_expected_revision:
+        statement: >-
+          THE SYSTEM MUST reject a source edit that does not match the current source
+          revision.
+      stale_edit_does_not_count:
+        statement: THE SYSTEM MUST NOT count a rejected stale edit toward the edit limit.
+      replayed_edit_does_not_count:
+        statement: THE SYSTEM MUST NOT count a replayed edit toward the edit limit.
+      edit_transition_is_atomic:
+        statement: >-
+          THE SYSTEM MUST atomically stop pending admission, discard its artifacts,
+          apply the edit, advance the source revision, and restart admission.
+
+  graph_scheduling:
+    purpose: Prefer graph completion while bounding concurrency and failure propagation.
+    rules:
+      claim_requires_active_source:
+        statement: >-
+          THE SYSTEM MUST reject a generated-task claim unless its source remains
+          decomposed.
+      claim_requires_healthy_siblings:
+        statement: >-
+          THE SYSTEM MUST reject a generated-task claim while a generated sibling is
+          failed.
+      claim_requires_done_dependencies:
+        statement: >-
+          THE SYSTEM MUST reject a generated-task claim while one of its dependencies is
+          not done.
+      claim_checks_are_atomic:
+        statement: >-
+          THE SYSTEM MUST evaluate graph claim conditions atomically with the claim.
+      active_children_finish_after_failure:
+        statement: >-
+          THE SYSTEM MUST allow already active generated work to finish after a sibling
+          fails.
+      generated_work_is_prioritized:
+        statement: >-
+          THE SYSTEM MUST select eligible generated work before unrelated new delivery
+          work.
+      child_parallelism_is_bounded:
+        statement: >-
+          THE SYSTEM MUST allow no more than two generated implementation tasks from one
+          source to be active concurrently.
+
+  scheduling_policy:
+    purpose: Keep decomposition robust without monopolizing unrelated capacity.
+    rules:
+      planning_is_repository_serial:
+        statement: >-
+          THE SYSTEM MUST run no more than one Planning Agent at a time per repository.
+      planning_uses_dedicated_capacity:
+        statement: >-
+          THE SYSTEM MUST NOT consume implementation or review capacity for decomposition
+          planning.
+      planning_candidates_follow_priority:
+        statement: >-
+          THE SYSTEM MUST select planning candidates by priority before creation order.
+      active_work_is_not_interrupted_for_priority:
+        statement: >-
+          THE SYSTEM MUST NOT interrupt active unrelated work to prioritize eligible
+          generated work.
+      graph_priority_does_not_reserve_idle_capacity:
+        statement: >-
+          THE SYSTEM MUST process unrelated work when a Task Graph has no eligible
+          generated work.
+      children_inherit_priority:
+        statement: >-
+          Every generated Managed Task MUST inherit the source Managed Task's priority.
+      children_retain_creator:
+        statement: >-
+          Every generated Managed Task MUST retain the source Managed Task's creator as
+          its accountable owner.
+
+  child_delivery:
+    purpose: Preserve independent routing, review, and delivery responsibility per child.
+    rules:
+      children_are_classified_independently:
+        statement: >-
+          THE SYSTEM MUST assign every generated Managed Task its own authoritative model
+          routing.
+      children_have_independent_delivery:
+        statement: >-
+          Every generated Managed Task MUST complete its own implementation and protected
+          merge lifecycle.
+      children_have_independent_review:
+        statement: >-
+          Every generated Managed Task MUST receive an independent review.
+      children_have_independent_rework:
+        statement: >-
+          Every generated Managed Task MUST receive its own rework budget.
+      review_is_scoped_to_child:
+        statement: >-
+          A reviewer MUST evaluate generated work against that task's assigned source
+          requirements and direct dependencies.
+      review_does_not_expand_child:
+        statement: >-
+          A reviewer MUST NOT require a generated Managed Task to perform work assigned
+          to a sibling.
+      graph_defect_is_reported:
+        statement: >-
+          A reviewer MUST report a Task Graph blocker when the accepted decomposition is
+          itself invalid.
+
+  graph_completion:
+    purpose: Derive source progress and completion from fully delivered children.
+    rules:
+      graph_blocker_stops_new_work:
+        statement: >-
+          THE SYSTEM MUST NOT start additional generated work while a Task Graph blocker
+          remains unresolved.
+      graph_blocker_requires_replacement:
+        statement: >-
+          THE SYSTEM MUST NOT automatically replan a Task Graph after generated delivery
+          has started.
+      source_waits_for_all_children:
+        statement: >-
+          THE SYSTEM MUST keep the source decomposed until every generated Managed Task
+          is done.
+      done_requires_protected_merge:
+        statement: >-
+          THE SYSTEM MUST NOT count a generated Managed Task as done before its protected
+          merge completes.
+      source_completes_atomically:
+        statement: >-
+          THE SYSTEM MUST mark the source Managed Task done atomically after every
+          generated Managed Task is done.
+      source_dependents_wait:
+        statement: >-
+          THE SYSTEM MUST keep work depending on the source blocked until the source is
+          done.
+
+  graph_blocker_recovery:
+    purpose: Fail safely when review proves the accepted decomposition is invalid.
+    rules:
+      graph_blocker_fails_affected_child:
+        statement: >-
+          THE SYSTEM MUST fail the affected generated Managed Task when review confirms
+          a Task Graph blocker.
+      graph_blocker_keeps_source_decomposed:
+        statement: >-
+          THE SYSTEM MUST keep the source Managed Task decomposed and blocked after a
+          Task Graph blocker.
+      graph_blocker_has_no_rework:
+        statement: >-
+          THE SYSTEM MUST NOT route a Task Graph blocker through ordinary child rework.
+      graph_blocker_requires_source_cancellation:
+        statement: >-
+          Recovery from a materialized Task Graph blocker MUST require cancellation of
+          the source Task Graph.
+      graph_blocker_requires_replacement:
+        statement: >-
+          Recovery from a materialized Task Graph blocker MUST require a replacement
+          source Managed Task.
+
+  cancellation:
+    purpose: Stop the complete graph while preserving durable evidence.
+    rules:
+      source_cancellation_stops_graph:
+        statement: >-
+          THE SYSTEM MUST stop all active Task Graph work when the source Managed Task is
+          cancelled.
+      source_cancellation_cancels_children:
+        statement: >-
+          THE SYSTEM MUST cancel every unfinished generated Managed Task when the source
+          is cancelled.
+      source_cancellation_prevents_activity:
+        statement: >-
+          THE SYSTEM MUST prevent further Task Graph activity after source cancellation.
+      cancellation_cleans_execution_artifacts:
+        statement: >-
+          THE SYSTEM MUST safely remove active execution artifacts after Task Graph
+          cancellation.
+      cancellation_preserves_history:
+        statement: >-
+          THE SYSTEM MUST preserve lifecycle history and review evidence after Task Graph
+          cancellation.
+      cancellation_preserves_merged_delivery:
+        statement: >-
+          THE SYSTEM MUST preserve records of merged generated delivery after Task Graph
+          cancellation.
+      children_cannot_cancel_graph:
+        statement: >-
+          THE SYSTEM MUST reject direct cancellation of one generated Managed Task.
+
+  cancellation_cleanup:
+    purpose: Remove revocable delivery artifacts without destroying audit evidence.
+    rules:
+      cancellation_closes_unmerged_changes:
+        statement: >-
+          THE SYSTEM MUST close unmerged generated Proposed Changes after source
+          cancellation.
+      cancellation_removes_temporary_worktrees:
+        statement: >-
+          THE SYSTEM MUST safely remove temporary generated worktrees after source
+          cancellation.
+      cancellation_removes_temporary_branches:
+        statement: >-
+          THE SYSTEM MUST safely remove revocable generated branches after source
+          cancellation.
+
+  recovery:
+    purpose: Recover decomposition without partial, duplicate, or unsafe work.
+    rules:
+      planning_state_survives_restart:
+        statement: >-
+          THE SYSTEM MUST recover durable planning state after restart.
+      complete_graph_survives_restart:
+        statement: >-
+          THE SYSTEM MUST recover a complete Task Graph after restart.
+      recovery_creates_no_duplicate:
+        statement: >-
+          THE SYSTEM MUST NOT create duplicate generated work during recovery.
+      inconsistent_graph_is_blocked:
+        statement: >-
+          THE SYSTEM MUST block recovered decomposition state that is incomplete or
+          inconsistent.
+      inconsistent_graph_starts_nothing:
+        statement: >-
+          THE SYSTEM MUST NOT start generated work from incomplete or inconsistent
+          recovered decomposition state.
+      unstarted_graph_may_replan:
+        statement: >-
+          THE SYSTEM MUST allow an inconsistent recovered graph to replan only when no
+          generated Managed Task has started and proposal attempts remain.
+      started_graph_cannot_replan:
+        statement: >-
+          THE SYSTEM MUST NOT automatically replan recovered decomposition after any
+          generated Managed Task has started, produced a Proposed Change, or merged.
+
+  planning_recovery_priority:
+    purpose: Restore exclusive planning authority before unrelated delivery resumes.
+    rules:
+      planning_freeze_is_durable:
+        statement: THE SYSTEM MUST preserve an active managed delivery freeze across restart.
+      recovered_planning_resumes_first:
+        statement: >-
+          THE SYSTEM MUST resume a recovered planning source before starting unrelated
+          managed delivery work.
+      interrupted_provider_call_is_not_rejection:
+        statement: >-
+          THE SYSTEM MUST NOT count a planning provider call interrupted by restart as a
+          rejected Decomposition Plan.
+
+  upgrade_recovery:
+    purpose: Apply decomposition safely to work that predates the capability.
+    rules:
+      unrelated_existing_work_uses_policy:
+        statement: >-
+          Existing work outside a Task Graph MUST follow the current decomposition
+          admission policy when next eligible for admission.
+      complete_existing_graph_resumes:
+        statement: THE SYSTEM MUST resume a complete valid existing Task Graph.
+      incomplete_existing_graph_is_held:
+        statement: THE SYSTEM MUST hold an incomplete existing Task Graph.
+      inconsistent_existing_graph_is_held:
+        statement: THE SYSTEM MUST hold an inconsistent existing Task Graph.
+      held_graph_reports_reason:
+        statement: >-
+          THE SYSTEM MUST expose why an existing Task Graph was held.
+      no_second_graph_on_upgrade:
+        statement: >-
+          THE SYSTEM MUST NOT create a second Task Graph for an existing decomposed
+          source.
+
+  observability:
+    purpose: Expose bounded graph progress, blockers, and provenance without controls.
+    rules:
+      status_exposes_membership:
+        statement: >-
+          THE SYSTEM MUST expose source and generated Task Graph membership through
+          read-only status.
+      status_exposes_dependencies:
+        statement: >-
+          THE SYSTEM MUST expose Task Graph dependencies through read-only status.
+      status_exposes_progress:
+        statement: >-
+          THE SYSTEM MUST expose generated task state counts and completion progress
+          through read-only status.
+      status_exposes_blockers:
+        statement: >-
+          THE SYSTEM MUST expose failed children, the current blocking generated Managed
+          Task, and Planning Blockers through read-only status.
+      status_exposes_attempts:
+        statement: >-
+          THE SYSTEM MUST expose planning attempts and final exhausted-plan or
+          provider-failure reasons through read-only status.
+      planning_history_is_bounded:
+        statement: >-
+          THE SYSTEM MUST retain no more than three rejected-plan summaries per planning
+          cycle.
+      model_transcripts_are_not_persisted:
+        statement: >-
+          THE SYSTEM MUST NOT persist full planning prompts or model transcripts.
+
+  provider_accounting:
+    purpose: Classify non-semantic planner failures under the provider budget.
+    rules:
+      malformed_output_is_provider_failure:
+        statement: >-
+          THE SYSTEM MUST count malformed planner protocol output as a planning provider
+          failure.
+      sandbox_violation_is_provider_failure:
+        statement: >-
+          THE SYSTEM MUST count a Planning Agent sandbox violation as a planning provider
+          failure.
+      provider_failures_are_bounded:
+        statement: >-
+          THE SYSTEM MUST hold the source Managed Task after three planning provider
+          failures.
+
+use_cases:
+  decompose_large_work:
+    actor: coordination_daemon
+    goal: Convert one ready large implementation outcome into bounded delivery work.
+    given:
+      - The source Managed Task is ready and has size L or XL.
+      - Every source dependency is done.
+      - No other source Task Graph is active.
+    when:
+      - Managed repository activity drains and decomposition planning begins.
+    then:
+      - One Planning Agent proposes a bounded Decomposition Plan or a Planning Blocker.
+      - Every proposed Managed Task is classified before any generated task is created.
+      - A valid complete Task Graph is created atomically before delivery resumes.
+    otherwise:
+      - Rejected plans create no tasks and bounded failure holds the source visibly.
+
+  deliver_decomposed_work:
+    actor: coordination_daemon
+    goal: Complete the source outcome through its accepted Task Graph.
+    given:
+      - One complete Task Graph is durably materialized.
+      - Every generated Managed Task is ready and has size S or M.
+    when:
+      - Generated work becomes eligible under its dependencies.
+    then:
+      - Eligible generated work is prioritized with bounded parallelism.
+      - Every generated task completes its independent delivery lifecycle.
+      - The source becomes done only after every generated task is done.
+    otherwise:
+      - A failed child or Task Graph blocker stops new graph work without interrupting active children.
+
+  revise_before_materialization:
+    actor: task_author
+    goal: Correct source work before a Task Graph is created.
+    given:
+      - The source Managed Task has not materialized generated work.
+      - The source Managed Task has accepted fewer than three prior edits.
+    when:
+      - The Task Author updates the source Managed Task.
+    then:
+      - Pending admission work and artifacts are discarded.
+      - The updated source restarts admission.
+    otherwise:
+      - A fourth edit is rejected without stopping the latest accepted revision.
+
+  cancel_decomposed_work:
+    actor: task_author
+    goal: Stop an entire decomposed delivery safely.
+    given:
+      - The source Managed Task has an active Task Graph.
+    when:
+      - The Task Author cancels the source Managed Task.
+    then:
+      - Active execution stops throughout the graph.
+      - Unfinished generated tasks are cancelled.
+      - Temporary execution artifacts are cleaned safely.
+      - Durable audit and merged delivery records remain available.
+    otherwise:
+      - No generated task continues provisioning after source cancellation.
