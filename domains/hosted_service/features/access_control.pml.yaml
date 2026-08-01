@@ -1,0 +1,86 @@
+purpose: Permit monitoring and coordination only for authenticated identities with explicit
+  repository-scoped authority.
+actors:
+  - service_user
+  - authorized_agent
+  - service_operator
+architecture:
+  - authenticated_service_gateway
+  - built_in_agent_coordination
+  - github_identity_and_repository_access
+  - managed_control_plane_database
+  - repository_ingress_sidecar
+rules:
+  authentication_required:
+    statement: THE SYSTEM MUST authenticate every Service User and Authorized Agent before
+      granting access to a Hosted Repository.
+  repository_scope_required:
+    statement: THE SYSTEM MUST authorize every requested operation against the specific
+      Hosted Repository before performing it.
+  no_cross_tenant_access:
+    statement: A Service User or Authorized Agent MUST NOT access a Hosted Repository
+      outside its active Access Grants.
+  revocation_is_enforced:
+    statement: THE SYSTEM MUST deny subsequent access through an expired or revoked Access
+      Grant.
+  single_owner_account:
+    statement: Each MVP Service Account MUST have exactly one owning Service User.
+  no_automatic_collaborator_access:
+    statement: Source-repository collaboration MUST NOT automatically grant access to a
+      Service Account or Hosted Repository.
+components:
+  authority_boundary:
+    purpose: Prevent people and external agents from acquiring runtime or customer-content
+      authority through the hosted service.
+    rules:
+      no_user_shell:
+        statement: THE SYSTEM MUST NOT provide Service Users with interactive shell access
+          to Hosted Repository runtimes.
+      no_arbitrary_user_execution:
+        statement: THE SYSTEM MUST NOT provide Service Users with a facility to execute
+          arbitrary commands in Hosted Repository runtimes.
+      agent_coordination_only:
+        statement: An Authorized Agent MUST be limited to explicitly granted Quorum
+          coordination operations.
+      operator_product_access_denied:
+        statement: THE SYSTEM MUST NOT provide Service Operators with product functionality
+          for reading customer source code, personal information, Vendor Credentials, or
+          managed coding content.
+  monitoring_surface:
+    purpose: Let authorized people observe Quorum activity without obtaining execution
+      authority.
+    rules:
+      monitoring_is_repository_scoped:
+        statement: The monitoring surface MUST display only Hosted Repositories permitted
+          by the Service User's active Access Grants.
+      monitoring_does_not_execute:
+        statement: The monitoring surface MUST NOT provide arbitrary command execution or
+          interactive runtime access.
+      monitoring_is_read_only:
+        statement: The monitoring surface MUST NOT change Managed Task lifecycle, repository
+          content, or runtime state.
+  agent_coordination_surface:
+    purpose: Let authorized agents coordinate repository work through constrained Quorum
+      operations.
+    rules:
+      lifecycle_authority_preserved:
+        statement: Agent coordination access MUST NOT transfer lifecycle or merge authority
+          away from the Coordination Daemon.
+      generic_shell_absent:
+        statement: Agent coordination access MUST NOT expose a generic shell or arbitrary
+          command interface.
+      managed_agent_scope:
+        statement: Each managed agent's coordination access MUST be limited to its assigned
+          Hosted Repository, Managed Task, delivery role, and Coding Run lifetime.
+      external_agent_grant:
+        statement: Each external agent's coordination access MUST require an active Access
+          Grant scoped to explicit Hosted Repositories and operations.
+      customer_token_is_external:
+        statement: THE SYSTEM MUST NOT disclose an external agent's customer credential to
+          a managed agent or Hosted Repository runtime.
+      token_plaintext_once:
+        statement: THE SYSTEM MUST display an external-agent token's plaintext only once
+          and store only a verification hash afterward.
+      bounded_token_lifetime:
+        statement: An external-agent token MUST have a bounded expiration established when
+          it is issued.

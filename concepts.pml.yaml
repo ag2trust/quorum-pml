@@ -46,3 +46,34 @@ task_graph:
     - cancelled
 planning_blocker:
   meaning: Evidence that safe decomposition requires clarification or owner intervention.
+hosted_repository:
+  meaning: >-
+    One registered source repository and its isolated Quorum runtime, durable coordination
+    state, managed coding contexts, and repository-scoped authorization.
+  states:
+    - provisioning
+    - available
+    - suspended
+    - unavailable
+    - deleted
+vendor_credential:
+  meaning: >-
+    A secret supplied or authorized for use with one supported external AI provider.
+  states:
+    - active
+    - revoked
+access_grant:
+  meaning: >-
+    Revocable authority for one identity to perform an allowed set of operations against
+    explicitly selected Hosted Repositories.
+  states:
+    - active
+    - expired
+    - revoked
+service_account:
+  meaning: >-
+    The hosted-service ownership boundary for one Service User, its Hosted Repositories,
+    Vendor Credentials, and Access Grants.
+  states:
+    - active
+    - cancelled

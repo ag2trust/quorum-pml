@@ -1,0 +1,28 @@
+purpose: Prevent unauthorized disclosure of customer code, personal information, and
+  managed coding content.
+actors:
+  - service_user
+  - authorized_agent
+  - service_operator
+architecture:
+  - private_operator_access
+rules:
+  authorization_required:
+    statement: Customer source code, personal information, and managed coding content MUST
+      be disclosed only to an identity or Coding Run authorized for the applicable Hosted
+      Repository and purpose.
+  provider_scope:
+    statement: THE SYSTEM MUST disclose private customer content to an external AI provider
+      only when required by an authorized Coding Run using that provider.
+  no_training_authority:
+    statement: THE SYSTEM MUST NOT grant itself authority to use customer source code,
+      personal information, or managed coding content for model training.
+  bounded_retention:
+    statement: THE SYSTEM MUST NOT retain private customer content beyond the declared
+      service purpose and retention period.
+  observability_minimization:
+    statement: Monitoring and operational telemetry MUST NOT expose private customer
+      content beyond the minimum authorized view required for that surface.
+  exceptional_operator_access:
+    statement: Any exceptional infrastructure-level operator access to private customer
+      content MUST be explicitly authorized, time-bounded, and auditable.

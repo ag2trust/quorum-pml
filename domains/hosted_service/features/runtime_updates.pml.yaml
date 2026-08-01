@@ -1,0 +1,42 @@
+purpose: Let a Service User replace a Hosted Repository runtime with a selected public
+  Quorum version without losing repository or coordination state.
+actors:
+  - service_user
+  - coordination_daemon
+architecture:
+  - public_quorum_runtime
+  - restricted_runtime_management
+rules:
+  user_selects_update:
+    statement: A Hosted Repository runtime version MUST change only after an authorized
+      Service User selects the update.
+  no_active_update:
+    statement: THE SYSTEM MUST NOT replace a Hosted Repository runtime while a managed
+      agent is active.
+  new_work_is_held:
+    statement: THE SYSTEM MUST prevent new managed-agent work from starting after a runtime
+      update begins.
+  persistent_state_is_reused:
+    statement: Runtime replacement MUST preserve and remount the Hosted Repository's source
+      repository and Quorum coordination state.
+  incompatible_downgrade_denied:
+    statement: THE SYSTEM MUST reject a runtime version that cannot open the existing Quorum
+      coordination schema safely.
+  failed_update_is_loud:
+    statement: ON FAILURE, THE SYSTEM MUST leave the Hosted Repository unavailable with an
+      actionable update error rather than repeatedly replacing or migrating it.
+use_cases:
+  update_runtime:
+    actor: service_user
+    goal: Run a selected newer public Quorum version for one Hosted Repository.
+    given:
+      - The Service User is authorized for the Hosted Repository.
+      - The selected runtime version is available and compatible.
+    when:
+      - The Service User requests the runtime update.
+    then:
+      - Active managed-agent execution is absent before replacement.
+      - A new container uses the existing repository and coordination state.
+      - Monitoring and agent access resume only after runtime health is established.
+    otherwise:
+      - The Hosted Repository remains unavailable with an actionable explanation.

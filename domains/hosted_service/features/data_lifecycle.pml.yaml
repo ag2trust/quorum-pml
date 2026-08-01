@@ -1,0 +1,40 @@
+purpose: Retain only the repository state required to operate each Hosted Repository and
+  remove it when the customer ends that use.
+actors:
+  - service_user
+architecture:
+  - hosted_observability
+rules:
+  persistent_repository:
+    statement: THE SYSTEM MUST preserve an available Hosted Repository's source repository
+      until the Service User deletes it or cancels the applicable service account.
+  persistent_coordination_state:
+    statement: THE SYSTEM MUST preserve an available Hosted Repository's Quorum coordination
+      state until the Service User deletes it or cancels the applicable service account.
+  worktree_lifetime:
+    statement: THE SYSTEM MUST retain a managed coding worktree only while it is required by
+      active Managed Task execution or recovery.
+  no_mvp_backups:
+    statement: THE SYSTEM MUST NOT create service-managed backups of Hosted Repository code,
+      worktrees, or Quorum coordination state during the MVP.
+  deletion_removes_active_data:
+    statement: Deleting a Hosted Repository or cancelling its service account MUST remove
+      its active source repository, worktrees, Quorum coordination state, and configuration.
+  no_content_archive:
+    statement: THE SYSTEM MUST NOT retain an archival copy of deleted Hosted Repository
+      code, worktrees, or Quorum coordination state.
+  application_log_retention:
+    statement: THE SYSTEM MUST delete hosted-service application logs after 30 days.
+use_cases:
+  delete_hosted_repository:
+    actor: service_user
+    goal: End hosted operation and remove the repository's retained service data.
+    given:
+      - The Service User is authorized to delete the Hosted Repository.
+    when:
+      - The Service User requests deletion of the Hosted Repository.
+    then:
+      - The Hosted Repository becomes unavailable.
+      - Its retained repository state is removed from active service storage.
+    otherwise:
+      - The Hosted Repository remains inaccessible while deletion is retried or reported.

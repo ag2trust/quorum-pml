@@ -1,0 +1,72 @@
+purpose: Keep each Hosted Repository and its execution isolated from every other customer
+  and repository.
+actors:
+  - service_user
+  - coordination_daemon
+architecture:
+  - containerized_repository_runtime
+  - digitalocean_mvp_hosting
+  - managed_egress_filtering
+  - public_quorum_runtime
+  - reproducible_hosted_infrastructure
+  - restricted_runtime_management
+rules:
+  repository_boundary:
+    statement: Each Hosted Repository MUST have an isolated execution and durable-state
+      boundary.
+  cross_repository_denial:
+    statement: A Hosted Repository runtime MUST NOT access another Hosted Repository's
+      code, credentials, coordination state, or managed coding contexts.
+  single_daemon_authority:
+    statement: Exactly one live Coordination Daemon MUST govern each available Hosted
+      Repository.
+  replacement_preserves_state:
+    statement: Replacing a Hosted Repository runtime MUST preserve its accepted durable
+      coordination state.
+  public_runtime_parity:
+    statement: Each Hosted Repository MUST use the same public Quorum runtime distribution
+      available for self-hosting.
+  deletion_removes_access:
+    statement: Deleting a Hosted Repository MUST revoke service access to its code,
+      credentials, coordination state, and managed coding contexts.
+components:
+  safe_provisioning:
+    purpose: Make Hosted Repository creation repeatable and fail-safe.
+    rules:
+      idempotent_provisioning:
+        statement: Repeating a Hosted Repository provisioning request MUST NOT create a
+          second active runtime or persistent repository state for the same registration.
+      short_lived_clone_authority:
+        statement: Initial repository cloning MUST use short-lived authority scoped to the
+          selected source repository.
+      health_gated_availability:
+        statement: A Hosted Repository MUST NOT become available until repository, Quorum
+          coordination, monitoring, and agent-coordination health are established.
+      partial_runtime_cleanup:
+        statement: ON FAILURE, THE SYSTEM MUST remove incomplete containers and volumes
+          that hold no accepted Hosted Repository state.
+      failed_stage_is_visible:
+        statement: ON FAILURE, THE SYSTEM MUST report the failed provisioning stage without
+          exposing credentials or private repository content.
+  network_boundary:
+    purpose: Restrict inbound and outbound connectivity for each Hosted Repository runtime.
+    rules:
+      private_runtime:
+        statement: A Hosted Repository runtime MUST NOT be directly accessible from the
+          public network.
+      filtered_egress:
+        statement: A Hosted Repository runtime MUST route outbound network access through
+          the approved managed filtering policy.
+use_cases:
+  provision_repository:
+    actor: service_user
+    goal: Make an authorized source repository available to hosted Quorum coordination.
+    given:
+      - The Service User is authorized to register the source repository.
+    when:
+      - The Service User registers the source repository.
+    then:
+      - One isolated Hosted Repository becomes available.
+      - Its Coordination Daemon governs its managed lifecycle.
+    otherwise:
+      - No partially authorized Hosted Repository becomes available.

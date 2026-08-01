@@ -1,0 +1,6 @@
+purpose: Provide private hosted Quorum coordination for registered source repositories.
+
+rules:
+  fail_closed:
+    statement: ON FAILURE, THE SYSTEM MUST deny access when identity, repository scope,
+      credential authority, or runtime isolation cannot be established.

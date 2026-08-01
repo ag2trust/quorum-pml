@@ -1,0 +1,35 @@
+purpose: Preserve shared MVP availability by admitting only bounded Hosted Repository and
+  agent workloads.
+actors:
+  - service_user
+  - coordination_daemon
+rules:
+  repository_limits:
+    statement: Each Hosted Repository runtime MUST have enforced CPU, memory, process, disk,
+      and execution-time limits.
+  user_limits:
+    statement: Each Service User MUST have enforced repository and concurrent-work limits.
+  global_limit:
+    statement: THE SYSTEM MUST enforce a global managed-agent concurrency limit.
+  reserved_service_capacity:
+    statement: Hosted Repository workloads MUST NOT consume capacity reserved for access,
+      control-plane, runtime-management, and observability services.
+  bounded_admission:
+    statement: THE SYSTEM MUST queue or reject new work when required capacity cannot be
+      established.
+  no_implicit_increase:
+    statement: THE SYSTEM MUST NOT increase a Service User's capacity limits without an
+      explicit operator decision.
+use_cases:
+  reach_capacity:
+    actor: service_user
+    goal: Understand why additional hosted work cannot begin immediately.
+    given:
+      - A user, repository, or global capacity limit has been reached.
+    when:
+      - Additional managed work becomes eligible to start.
+    then:
+      - Existing admitted work remains bounded.
+      - The additional work is queued or rejected with visible capacity status.
+    otherwise:
+      - No unbounded workload is started.

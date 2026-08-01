@@ -26,3 +26,318 @@ actors:
     meaning: >-
       The external source-control system that stores branches, proposed changes,
       reviews, required checks, and merge state.
+  service_user:
+    meaning: A person authorized to configure and monitor one or more Hosted Repositories.
+  authorized_agent:
+    meaning: >-
+      An external AI agent granted scoped coordination access to one or more Hosted
+      Repositories without interactive execution authority.
+  service_operator:
+    meaning: A person responsible for operating the hosted Quorum service.
+
+architecture:
+  containerized_repository_runtime:
+    category: runtime
+    selection: Docker-compatible isolated repository runtimes
+    rationale: >-
+      Preserve Quorum's repository-scoped daemon authority while placing repository code,
+      agent execution, and durable state within an independently managed runtime boundary.
+    constraints:
+      repository_isolation:
+        statement: Each Hosted Repository MUST have one isolated runtime authority.
+      single_daemon:
+        statement: Exactly one live Coordination Daemon MUST govern a Hosted Repository.
+      durable_replacement:
+        statement: Runtime replacement MUST preserve durable Quorum state without weakening
+          isolation.
+  digitalocean_mvp_hosting:
+    category: provider
+    selection: DigitalOcean-hosted MVP infrastructure
+    rationale: >-
+      Provide a small operational footprint while product demand and workload behavior
+      are being validated.
+    constraints:
+      isolation_preserved:
+        statement: Provider placement MUST NOT weaken repository or credential isolation.
+      durable_state:
+        statement: Durable state MUST survive replacement of an individual repository
+          runtime.
+  authenticated_service_gateway:
+    category: gateway
+    selection: Authenticated gateway for monitoring and agent coordination access
+    rationale: >-
+      Keep repository runtimes private while enforcing identity, repository scope, and
+      request policy at the service boundary.
+    constraints:
+      runtimes_are_private:
+        statement: Repository runtime services MUST NOT be directly reachable from the
+          public network.
+      forwarded_scope:
+        statement: Every forwarded request MUST carry an authenticated and authorized
+          repository scope.
+  public_quorum_runtime:
+    category: runtime
+    selection: Publicly available Quorum container distribution
+    rationale: >-
+      Let customers inspect and self-host the same repository runtime operated by the
+      hosted service.
+    constraints:
+      hosted_runtime_parity:
+        statement: The hosted service MUST run the public Quorum repository runtime without
+          granting it private control-plane authority.
+      self_hosting_independence:
+        statement: The public Quorum repository runtime MUST remain usable without the
+          private hosted control plane.
+      immutable_hosted_image:
+        statement: The hosted service MUST select the public Quorum runtime by immutable
+          image identity.
+      verified_hosted_image:
+        statement: The hosted service MUST verify public Quorum runtime image provenance
+          before provisioning it.
+  restricted_runtime_management:
+    category: framework
+    selection: Private allowlisted repository-runtime manager
+    rationale: >-
+      Provision public Quorum containers without giving the public application, customers,
+      agents, or repository runtimes unrestricted container-host authority.
+    constraints:
+      structured_lifecycle:
+        statement: Runtime management MUST accept only explicit provision, start, stop,
+          inspect, and delete operations.
+      server_owned_specification:
+        statement: Container images, commands, mounts, networks, capabilities, and resource
+          limits MUST be selected by server-owned policy.
+      docker_authority_is_private:
+        statement: Docker host authority MUST NOT be accessible to Service Users,
+          Authorized Agents, or Hosted Repository runtimes.
+      lifecycle_is_auditable:
+        statement: Hosted Repository runtime lifecycle operations MUST emit sanitized
+          operational telemetry.
+  built_in_agent_coordination:
+    category: framework
+    selection: Model Context Protocol support in the public Quorum distribution
+    rationale: >-
+      Give hosted and self-hosted agents the same structured Quorum coordination interface
+      without making Quorum aware of hosted infrastructure.
+    constraints:
+      structured_operations:
+        statement: Agent protocol operations MUST map to explicit Quorum capabilities.
+      no_shell_translation:
+        statement: Agent protocol requests MUST NOT be implemented as a generic shell or
+          arbitrary command interface.
+      daemon_authority:
+        statement: Agent protocol access MUST preserve Coordination Daemon lifecycle and
+          merge authority.
+      hosting_independence:
+        statement: Agent protocol behavior MUST NOT depend on the private hosted control
+          plane.
+  provider_credential_helper:
+    category: framework
+    selection: Provider-neutral, per-run credential helper contract
+    rationale: >-
+      Let supported coding runners obtain only the credentials required for an authorized
+      run without placing vendor secrets in container-wide configuration.
+    constraints:
+      no_container_secret:
+        statement: Vendor Credential plaintext MUST NOT be placed in container-wide runtime
+          configuration.
+      run_scope:
+        statement: Credential retrieval MUST be limited to one authorized Coding Run and
+          selected provider.
+      provider_adaptation:
+        statement: Provider-specific authentication MUST preserve the same credential
+          isolation contract.
+      self_hosting_independence:
+        statement: The credential helper contract MUST support implementations independent
+          of the private hosted control plane.
+  managed_egress_filtering:
+    category: gateway
+    selection: Cloudflare Zero Trust Gateway category and domain filtering
+    rationale: >-
+      Reduce malicious and unrelated outbound access while retaining common development,
+      source-control, package, and AI-provider destinations.
+    constraints:
+      private_network_denial:
+        statement: Hosted Repository egress MUST NOT reach cloud metadata, private
+          infrastructure, or other Hosted Repository runtimes.
+      security_category_denial:
+        statement: Hosted Repository egress MUST deny destinations classified as known
+          security threats.
+      development_access:
+        statement: Hosted Repository egress MUST permit the approved AI-provider,
+          source-control, package, and development destinations required by supported work.
+      content_privacy:
+        statement: Egress filtering MUST NOT decrypt customer HTTPS payloads for the MVP.
+  hosted_observability:
+    category: framework
+    selection: Self-hosted SigNoz with OpenTelemetry collection
+    rationale: >-
+      Provide operational logs, metrics, traces, and alerts without placing customer
+      repository content in telemetry.
+    constraints:
+      sensitive_content_excluded:
+        statement: Telemetry MUST NOT contain customer source code, prompts, full agent
+          output, authentication material, or Vendor Credential plaintext.
+      bounded_logs:
+        statement: Hosted-service application logs MUST have a 30-day retention period.
+      fail_open:
+        statement: Observability failure MUST NOT interrupt Hosted Repository coordination.
+  managed_control_plane_database:
+    category: database
+    selection: DigitalOcean Managed PostgreSQL
+    rationale: >-
+      Provide durable central storage for hosted users, authorization, repository
+      registration, and service metadata without operating a database inside the
+      application runtime.
+    constraints:
+      no_repository_content:
+        statement: The central database MUST NOT store customer source code, worktrees,
+          full agent output, or Quorum coordination databases.
+      no_plaintext_credentials:
+        statement: The central database MUST NOT store Vendor Credential plaintext,
+          external-agent token plaintext, or GitHub App private-key material.
+      private_connectivity:
+        statement: The central database MUST NOT be reachable from the public network or
+          Hosted Repository runtimes.
+      encrypted_vendor_records:
+        statement: Stored Vendor Credential records MUST contain only authenticated
+          ciphertext protected by key material held outside the central database.
+  per_user_kms_encryption:
+    category: provider
+    selection: AWS KMS envelope encryption with one KMS key per Service User
+    rationale: >-
+      Isolate customer credential encryption, keep key-encryption material inside managed
+      HSM-backed infrastructure, and support customer-scoped cryptographic deletion.
+    constraints:
+      per_user_key:
+        statement: Each Service User's Vendor Credentials MUST be protected by a distinct
+          AWS KMS key.
+      authenticated_context:
+        statement: Credential encryption and decryption MUST bind the Service User,
+          provider, and credential identity through authenticated encryption context.
+      kms_fail_closed:
+        statement: Vendor Credential storage and retrieval MUST fail closed when AWS KMS
+          cannot establish the required key authority.
+      no_plaintext_persistence:
+        statement: Plaintext data-encryption keys and Vendor Credentials MUST NOT be
+          persisted.
+      deletion_revokes_key:
+        statement: Cancelling a Service User account MUST schedule its AWS KMS key for
+          deletion after active credential records are removed.
+  reproducible_hosted_infrastructure:
+    category: framework
+    selection: Terraform-managed DigitalOcean infrastructure
+    rationale: >-
+      Keep MVP hosting, networking, managed data, persistent storage, and firewall policy
+      reproducible without manual production drift.
+    constraints:
+      reviewed_changes:
+        statement: Hosted infrastructure changes MUST be represented by reviewed Terraform
+          configuration before production application.
+      customer_runtime_separation:
+        statement: Terraform MUST NOT manage individual customer repository-container
+          lifecycle.
+  operational_secret_delivery:
+    category: provider
+    selection: Private DigitalOcean Spaces deployment-secret bundle
+    rationale: >-
+      Bootstrap and rotate control-plane operational secrets through the established
+      restricted object-storage delivery pattern.
+    constraints:
+      control_plane_only:
+        statement: Operational secret-bundle access MUST be limited to authorized
+          control-plane bootstrap and rotation processes.
+      no_customer_credentials:
+        statement: Vendor Credentials MUST NOT be stored in the operational secret bundle.
+      no_repository_access:
+        statement: Hosted Repository runtimes MUST NOT receive operational secret-bundle
+          credentials or content.
+      scoped_rotation:
+        statement: Rotating one operational secret MUST recreate only the control-plane
+          services that consume it.
+  private_operator_access:
+    category: gateway
+    selection: Tailscale-restricted production operator access
+    rationale: >-
+      Keep host and observability administration off the public network and attributable to
+      individual operators.
+    constraints:
+      no_public_ssh:
+        statement: Production host administration MUST NOT be reachable through public SSH.
+      individual_identity:
+        statement: Every production operator session MUST use an individual authenticated
+          identity protected by multi-factor authentication.
+      exceptional_content_access:
+        statement: Infrastructure access capable of exposing private customer content MUST
+          be exceptional, time-bounded, and auditable.
+  repository_ingress_sidecar:
+    category: gateway
+    selection: Private per-repository ingress proxy with repository-specific authentication
+    rationale: >-
+      Keep public Quorum runtimes unaware of hosted identities while independently rejecting
+      requests misrouted to the wrong Hosted Repository.
+    constraints:
+      gateway_authorization:
+        statement: The public gateway MUST authorize the account, identity, repository, and
+          operation before selecting a Hosted Repository route.
+      repository_credential:
+        statement: Each repository ingress proxy MUST require a distinct internal credential
+          for its Hosted Repository.
+      no_direct_runtime_route:
+        statement: The public gateway MUST NOT be permitted to connect directly to Quorum
+          monitoring or agent-coordination listeners without the repository ingress proxy.
+      quorum_identity_independence:
+        statement: The public Quorum runtime MUST NOT receive or interpret hosted user,
+          account, session, or external-agent credentials.
+  github_identity_and_repository_access:
+    category: provider
+    selection: GitHub authentication and selected-repository GitHub App installation
+    rationale: >-
+      Establish user identity and repository authority without collecting customer personal
+      access tokens or granting access beyond repositories selected during installation.
+    constraints:
+      github_sign_in:
+        statement: Service User authentication MUST use an authenticated GitHub identity.
+      selected_repository_authority:
+        statement: A Hosted Repository MUST be authorized through a GitHub App installation
+          that includes the selected source repository.
+      no_customer_pat:
+        statement: THE SYSTEM MUST NOT require or store a customer GitHub personal access
+          token.
+      short_lived_installation_access:
+        statement: GitHub repository operations MUST use short-lived installation authority
+          scoped to the selected repository and required permissions.
+  quorum_mediated_github_collaboration:
+    category: framework
+    selection: Quorum-mediated GitHub pull-request collaboration
+    rationale: >-
+      Let workers and reviewers communicate naturally through pull requests without giving
+      managed agents GitHub credentials or lifecycle authority.
+    constraints:
+      quorum_holds_github_authority:
+        statement: GitHub branch, pull-request, issue, review, comment, and merge operations
+          MUST be performed through Quorum-held authority.
+      agents_do_not_receive_github_credentials:
+        statement: Managed agents MUST NOT receive GitHub installation credentials.
+      structured_pr_operations:
+        statement: Agent pull-request collaboration MUST use explicit general-comment,
+          inline-comment, thread-reply, and review capabilities.
+      anchored_review_context:
+        statement: Inline review context MUST identify its repository path, revision, diff
+          side, line, thread, and nearby code.
+      comments_are_inert:
+        statement: Pull-request comment content MUST NOT directly change Managed Task
+          lifecycle state.
+  mvp_coding_runners:
+    category: provider
+    selection: Claude Code and OpenAI Codex CLI
+    rationale: >-
+      Limit hosted credential and runtime support to coding runners already governed by
+      public Quorum's Delivery Contract.
+    constraints:
+      public_support_first:
+        statement: A coding runner MUST satisfy the public Quorum Delivery Contract before
+          the hosted service may offer it.
+      hosted_adapter_required:
+        statement: A supported hosted coding runner MUST preserve per-run credential and
+          permission isolation through its provider-specific adapter.

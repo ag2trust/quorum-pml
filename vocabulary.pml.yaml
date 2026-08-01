@@ -47,3 +47,15 @@ Frontier Planning Model:
   meaning: >-
     The owner-approved highest-capability model for repository-aware planning on a
     supported provider.
+Hosted Repository:
+  meaning: >-
+    One registered source repository and its repository-scoped hosted Quorum runtime.
+Vendor Credential:
+  meaning: >-
+    A secret supplied or authorized for one supported external AI provider.
+Access Grant:
+  meaning: >-
+    Revocable, repository-scoped authority for an authenticated person or agent.
+Service Account:
+  meaning: >-
+    The hosted-service ownership boundary for one Service User and its hosted resources.

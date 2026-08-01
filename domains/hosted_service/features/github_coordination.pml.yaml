@@ -1,0 +1,50 @@
+purpose: Authorize selected GitHub repositories and mediate pull-request collaboration
+  without disclosing GitHub credentials to managed agents.
+actors:
+  - service_user
+  - coordination_daemon
+  - coding_worker
+  - code_reviewer
+  - repository_service
+architecture:
+  - github_identity_and_repository_access
+  - quorum_mediated_github_collaboration
+rules:
+  installation_required:
+    statement: THE SYSTEM MUST establish current GitHub App installation authority for the
+      selected source repository before provisioning or performing GitHub operations.
+  no_managed_agent_token:
+    statement: A Coding Worker or Code Reviewer MUST NOT receive GitHub installation
+      credentials.
+  daemon_performs_remote_operations:
+    statement: The Coordination Daemon MUST perform authorized remote branch, pull-request,
+      issue, review, comment, and merge operations on behalf of managed agents.
+  comments_do_not_transition:
+    statement: GitHub comment or review text MUST NOT directly advance or complete a Managed
+      Task.
+components:
+  review_context:
+    purpose: Give managed agents precise pull-request and review-thread context.
+    rules:
+      anchored_inline_context:
+        statement: Inline review context MUST identify the applicable file, revision, diff
+          side, line, thread, and nearby code.
+      outdated_context_is_visible:
+        statement: THE SYSTEM MUST identify review context that no longer applies to the
+          current Proposed Change revision.
+  collaboration_operations:
+    purpose: Let workers and reviewers communicate through constrained GitHub-shaped
+      capabilities.
+    rules:
+      general_comment:
+        statement: An authorized Coding Worker or Code Reviewer MUST be able to post a
+          general pull-request comment through Quorum.
+      inline_comment:
+        statement: An authorized Code Reviewer MUST be able to post a comment on a validated
+          line of the applicable Proposed Change revision through Quorum.
+      thread_reply:
+        statement: An authorized Coding Worker or Code Reviewer MUST be able to reply to an
+          applicable pull-request review thread through Quorum.
+      formal_review_authority:
+        statement: Agent collaboration operations MUST NOT transfer formal review or merge
+          authority away from the Coordination Daemon.
