@@ -47,6 +47,26 @@ Frontier Planning Model:
   meaning: >-
     The owner-approved highest-capability model for repository-aware planning on a
     supported provider.
+Review Finding:
+  meaning: >-
+    Evidence-backed reviewer observation with independent technical impact and merge
+    disposition.
+Follow-up Artifact:
+  meaning: >-
+    Durable normalized evidence for a non-blocking concern that may justify future
+    Managed Task after its Proposed Change is final.
+Review Interpretation:
+  meaning: >-
+    A bounded retrospective classification of the final review record into durable
+    Review Findings and Follow-up Artifacts.
+Planning Lineage:
+  meaning: >-
+    Durable source intent, accepted planning decisions, and delivery relationships
+    supplied to later planning without relying on a live Planning Agent session.
+Follow-up Assessment:
+  meaning: >-
+    A Planning Agent decision that creates, links, dismisses, or defers each supplied
+    Follow-up Artifact.
 Hosted Repository:
   meaning: >-
     One registered source repository and its repository-scoped hosted Quorum runtime.

@@ -1,0 +1,344 @@
+purpose: >-
+  Preserve substantive non-blocking review evidence and turn only relevant, distinct,
+  execution-ready outcomes into Managed Tasks without delaying the reviewed delivery.
+
+actors:
+  - coordination_daemon
+  - code_reviewer
+  - planning_agent
+  - repository_service
+
+emits:
+  - review_interpretation_completed
+  - follow_up_assessment_completed
+
+behaviors:
+  artifact_capture:
+    context:
+      - One completed review evaluation and its findings.
+    output:
+      statement: >-
+        One durable review record preserving each evidence-backed blocking or
+        non-blocking finding without granting delivery authority to its reviewer.
+    rules:
+      follow_up_is_evidence_backed:
+        statement: >-
+          Every Follow-up Artifact MUST identify a concrete concern, technical impact,
+          reason it does not block the current Proposed Change, affected product behavior,
+          desired future outcome, and supporting review evidence.
+      follow_up_identifies_scope_relationship:
+        statement: >-
+          Every Follow-up Artifact MUST identify whether it concerns existing behavior,
+          scope outside the current Managed Task, a stronger threat model, additional
+          defense, future behavior, or design debt.
+      vague_improvement_is_not_artifact:
+        statement: >-
+          THE SYSTEM MUST NOT create a Follow-up Artifact from a vague improvement idea
+          without a concrete concern and desired outcome.
+      reviewer_cannot_materialize:
+        statement: >-
+          The Code Reviewer MUST NOT create or modify Managed Tasks from Review Findings.
+      follow_up_does_not_delay_delivery:
+        statement: >-
+          Collection, interpretation, assessment, or failure of Follow-up Artifacts MUST
+          NOT delay approval or merge of the originating Proposed Change.
+
+  structured_review_interface:
+    context:
+      - One authorized review Coding Run and exact Proposed Change revision.
+    output:
+      statement: >-
+        One authorized review record bound to its reviewer, Managed Task, Proposed Change,
+        exact revision, and review role.
+    rules:
+      review_operations_are_structured:
+        statement: >-
+          THE SYSTEM MUST expose only structured operations for a Code Reviewer to record,
+          answer, resolve, and summarize Review Findings.
+      review_authority_is_run_scoped:
+        statement: >-
+          Every structured review operation MUST be authorized for the Coding Run,
+          Managed Task, Proposed Change, exact revision, and review role.
+      no_generic_repository_interface:
+        statement: >-
+          THE SYSTEM MUST NOT expose a generic Repository Service command or shell
+          interface to a Code Reviewer.
+      system_publishes_review_record:
+        statement: >-
+          THE SYSTEM MUST publish authorized Review Findings and resolutions to the
+          originating Proposed Change as the durable review record.
+
+  retrospective_interpretation:
+    context:
+      - One merged Proposed Change and its final durable review record.
+    output:
+      one_of:
+        interpretation_succeeded:
+          statement: >-
+            One durable Review Interpretation containing normalized Review Findings and
+            any supported Follow-up Artifacts.
+          emits:
+            - review_interpretation_completed
+        interpretation_failed:
+          statement: >-
+            One visible bounded interpretation failure that leaves completed delivery
+            unchanged.
+    rules:
+      interpretation_follows_merge:
+        statement: >-
+          THE SYSTEM MUST NOT perform final Review Interpretation before the originating
+          Proposed Change is merged.
+      interpretation_uses_final_record:
+        statement: >-
+          Review Interpretation MUST consider the final Proposed Change revision, Review
+          Findings, responses, resolutions, and delivery outcomes together.
+      interpretation_is_retrospective:
+        statement: >-
+          Review Interpretation MUST NOT change a Review Verdict, merge outcome, or the
+          completed originating Managed Task.
+      interpretation_is_durable:
+        statement: >-
+          THE SYSTEM MUST preserve normalized Review Findings, Follow-up Artifacts,
+          evidence references, and interpretation provenance durably.
+      interpretation_failure_is_loud:
+        statement: >-
+          THE SYSTEM MUST record Review Interpretation failure without changing completed
+          delivery state.
+      interpretation_retry_is_bounded:
+        statement: THE SYSTEM MUST bound Review Interpretation retries.
+      empty_artifacts_skip_planning:
+        statement: >-
+          THE SYSTEM MUST NOT start Follow-up Assessment when Review Interpretation emits
+          no Follow-up Artifacts.
+
+  planning_context:
+    context:
+      - Durable Planning Lineage for the originating delivery.
+      - Current repository instructions and inspectable repository state.
+    output:
+      statement: >-
+        One bounded planning context sufficient to assess follow-up work without relying
+        on memory from an earlier Planning Agent session.
+    rules:
+      one_planning_role:
+        statement: >-
+          THE SYSTEM MUST use the Planning Agent role for both decomposition and Follow-up
+          Assessment.
+      operation_contract_is_explicit:
+        statement: >-
+          THE SYSTEM MUST give decomposition and Follow-up Assessment distinct bounded
+          input and output contracts.
+      lineage_reconstructs_context:
+        statement: >-
+          THE SYSTEM MUST provide durable Planning Lineage with every Follow-up
+          Assessment.
+      session_is_not_authority:
+        statement: >-
+          Follow-up Assessment MUST NOT depend on availability or memory of an earlier
+          Planning Agent session.
+      source_intent_is_preserved:
+        statement: >-
+          The Planning Agent MUST preserve the originating Managed Task outcome and
+          applicable accepted planning constraints while assessing follow-up work.
+      current_context_is_used:
+        statement: >-
+          THE SYSTEM MUST provide the Planning Agent with current repository instructions,
+          a read-only repository view, every active Managed Task, and bounded recently
+          completed Managed Tasks selected by affected product behavior.
+
+  graph_artifact_batching:
+    context:
+      - Follow-up Artifacts originating from generated Managed Tasks in one Task Graph.
+    output:
+      statement: >-
+        One complete eligible Follow-up Artifact batch formed after the Task Graph is
+        done or after its merged delivery is preserved during cancellation.
+    rules:
+      child_merge_collects_only:
+        statement: >-
+          WHEN a generated Managed Task merges, THE SYSTEM MUST preserve its Follow-up
+          Artifacts without starting graph-level Follow-up Assessment.
+      completed_graph_assesses_together:
+        statement: >-
+          WHEN a Task Graph becomes done, THE SYSTEM MUST assess unresolved Follow-up
+          Artifacts from all of its generated Managed Tasks together.
+      graph_waits_for_interpretation:
+        statement: >-
+          THE SYSTEM MUST NOT start graph-level Follow-up Assessment before Review
+          Interpretation succeeds for every merged generated Proposed Change in the batch.
+      cancelled_graph_assesses_merged_subset:
+        statement: >-
+          WHEN a Task Graph is cancelled after generated delivery merged, THE SYSTEM MUST
+          assess unresolved Follow-up Artifacts from the preserved merged delivery
+          together.
+      ordinary_task_assesses_after_collection:
+        statement: >-
+          A merged Managed Task outside a Task Graph MUST become eligible for Follow-up
+          Assessment after successful Review Interpretation.
+
+  planner_assessment:
+    context:
+      - One complete eligible Follow-up Artifact batch.
+      - Durable Planning Lineage and supplied Managed Task history.
+    output:
+      statement: >-
+        One complete Follow-up Assessment that creates, links, dismisses, or defers every
+        supplied artifact exactly once.
+    rules:
+      batch_is_assessed_together:
+        statement: >-
+          The Planning Agent MUST assess every unresolved Follow-up Artifact in the
+          supplied batch together.
+      existing_work_is_compared:
+        statement: >-
+          The Planning Agent MUST compare Follow-up Artifacts with every supplied active
+          and recently completed Managed Task.
+      every_artifact_has_disposition:
+        statement: >-
+          Every accepted Follow-up Assessment MUST create, link, dismiss, or defer every
+          supplied Follow-up Artifact exactly once.
+      create_requires_distinct_outcome:
+        statement: >-
+          The Planning Agent MUST propose creation only for a distinct product outcome not
+          already covered by a supplied Managed Task.
+      related_artifacts_may_share_task:
+        statement: >-
+          The Planning Agent MUST combine Follow-up Artifacts that share one root concern
+          and desired outcome into no more than one proposed Managed Task.
+      dismiss_requires_evidence:
+        statement: >-
+          The Planning Agent MUST dismiss a Follow-up Artifact only when it is invalid,
+          obsolete, already resolved, or outside accepted product intent.
+      defer_requires_decision:
+        statement: >-
+          The Planning Agent MUST defer a valid Follow-up Artifact when an unresolved
+          product decision or missing context prevents execution-ready work.
+  proposed_task_resolution:
+    context:
+      - One Follow-up Assessment and supplied Managed Task history.
+    output:
+      statement: >-
+        One bounded set of distinct execution-ready task proposals and justified links to
+        existing Managed Tasks.
+    rules:
+      link_requires_existing_coverage:
+        statement: >-
+          The Planning Agent MUST link a Follow-up Artifact only when an existing supplied
+          Managed Task covers the same root concern and desired outcome.
+      proposed_work_is_execution_ready:
+        statement: >-
+          Every Managed Task proposed by a Follow-up Assessment MUST define an observable
+          outcome, acceptance criteria, applicable source constraints, and verification
+          expectations.
+
+  planner_boundary:
+    context:
+      - One planner operation contract and its bounded planning context.
+    output:
+      statement: >-
+        One bounded Planning Agent result produced with read-only repository authority
+        and no external coordination authority.
+    rules:
+      planner_is_read_only:
+        statement: The Planning Agent MUST receive only read access to the repository.
+      planner_has_no_network:
+        statement: The Planning Agent MUST NOT receive network access.
+      planner_has_no_repository_service:
+        statement: The Planning Agent MUST NOT receive Repository Service access.
+      planner_has_no_coordination_access:
+        statement: The Planning Agent MUST NOT receive coordination commands or database access.
+      planner_response_is_bounded:
+        statement: THE SYSTEM MUST bound Follow-up Assessment input, output, and duration.
+      planner_cannot_materialize:
+        statement: >-
+          The Planning Agent MUST NOT create, modify, route, or assign Managed Tasks.
+
+  materialization:
+    context:
+      - One complete validated Follow-up Assessment.
+    output:
+      one_of:
+        assessment_applied:
+          statement: >-
+            One durable atomic result preserving every artifact disposition and every
+            accepted Managed Task relationship.
+          emits:
+            - follow_up_assessment_completed
+        assessment_rejected:
+          statement: >-
+            One visible assessment rejection that creates no Managed Task and leaves
+            completed delivery unchanged.
+    rules:
+      daemon_validates_complete_assessment:
+        statement: >-
+          THE SYSTEM MUST reject a Follow-up Assessment unless every supplied artifact has
+          exactly one valid disposition and every referenced Managed Task exists.
+      invalid_assessment_creates_nothing:
+        statement: >-
+          THE SYSTEM MUST NOT create a Managed Task from an invalid or incomplete Follow-up
+          Assessment.
+      assessment_application_is_atomic:
+        statement: >-
+          THE SYSTEM MUST atomically create accepted Managed Tasks, preserve artifact
+          relationships, and record every disposition in one Follow-up Assessment.
+      created_work_uses_admission:
+        statement: >-
+          Every Managed Task created from Follow-up Artifacts MUST enter the ordinary task
+          admission and decomposition policy.
+      planner_failure_does_not_change_delivery:
+        statement: >-
+          Follow-up Assessment failure MUST NOT change the originating Managed Task,
+          Proposed Change, or Task Graph delivery outcome.
+
+  observability:
+    context:
+      - Durable Follow-up Artifacts and completed Follow-up Assessments.
+    output:
+      statement: >-
+        One bounded read-only account of follow-up evidence, disposition reasons, and
+        resulting Managed Task relationships.
+    rules:
+      artifacts_are_inspectable:
+        statement: >-
+          THE SYSTEM MUST expose Follow-up Artifact evidence, current state, and originating
+          Proposed Change through read-only inspection.
+      decisions_are_explainable:
+        statement: >-
+          THE SYSTEM MUST expose the reason and resulting Managed Task relationship for
+          every completed Follow-up Assessment disposition.
+      model_transcripts_are_not_persisted:
+        statement: >-
+          THE SYSTEM MUST NOT persist full Review Interpretation or Planning Agent prompts
+          or model transcripts.
+
+use_cases:
+  preserve_non_blocking_review_evidence:
+    actor: code_reviewer
+    goal: Preserve a substantive concern without incorrectly blocking current delivery.
+    given:
+      - A concrete Review Finding is outside the accepted merge-blocking boundary.
+      - The finding has supporting evidence and a desired future outcome.
+    when:
+      - The Code Reviewer records the finding through structured coordination.
+    then:
+      - The finding does not increase the blocking count.
+      - The durable Proposed Change review record explains its impact and non-blocking disposition.
+      - Final Review Interpretation may preserve it as a Follow-up Artifact.
+    otherwise:
+      - Vague or unsupported improvement ideas do not enter follow-up planning.
+
+  assess_review_follow_ups:
+    actor: planning_agent
+    goal: Convert final review evidence into only distinct execution-ready future work.
+    given:
+      - Review Interpretation completed for the relevant merged delivery.
+      - Durable Planning Lineage and relevant existing work are available.
+      - The complete eligible Follow-up Artifact batch is known.
+    when:
+      - The Planning Agent performs Follow-up Assessment.
+    then:
+      - Every artifact is created, linked, dismissed, or deferred exactly once.
+      - Accepted proposed work is execution-ready and preserves source intent.
+      - The Coordination Daemon applies the complete assessment atomically.
+    otherwise:
+      - Invalid assessment output creates no Managed Tasks and does not alter completed delivery.

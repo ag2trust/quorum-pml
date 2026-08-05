@@ -20,8 +20,8 @@ actors:
     meaning: A managed coding run authorized to evaluate one Proposed Change independently.
   planning_agent:
     meaning: >-
-      A repository-aware read-only coding run authorized to decompose one oversized
-      implementation Managed Task into bounded delivery work.
+      A repository-aware read-only coding run authorized to propose bounded delivery
+      work from an oversized Managed Task or durable post-review evidence.
   repository_service:
     meaning: >-
       The external source-control system that stores branches, proposed changes,
