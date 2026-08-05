@@ -67,7 +67,7 @@ architecture:
     selection: Authenticated gateway for monitoring and agent coordination access
     rationale: >-
       Keep repository runtimes private while enforcing identity, repository scope, and
-      request policy at the service boundary.
+      request policy at the hosted access boundary.
     constraints:
       runtimes_are_private:
         statement: Repository runtime services MUST NOT be directly reachable from the
@@ -80,19 +80,19 @@ architecture:
     selection: Publicly available Quorum container distribution
     rationale: >-
       Let customers inspect and self-host the same repository runtime operated by the
-      hosted service.
+      hosted offering.
     constraints:
       hosted_runtime_parity:
-        statement: The hosted service MUST run the public Quorum repository runtime without
+        statement: The hosted offering MUST run the public Quorum repository runtime without
           granting it private control-plane authority.
       self_hosting_independence:
         statement: The public Quorum repository runtime MUST remain usable without the
           private hosted control plane.
       immutable_hosted_image:
-        statement: The hosted service MUST select the public Quorum runtime by immutable
-          image identity.
+        statement: The hosted offering MUST select the public Quorum runtime by immutable
+          release identity.
       verified_hosted_image:
-        statement: The hosted service MUST verify public Quorum runtime image provenance
+        statement: The hosted offering MUST verify public Quorum runtime release provenance
           before provisioning it.
   restricted_runtime_management:
     category: framework
@@ -108,7 +108,7 @@ architecture:
         statement: Container images, commands, mounts, networks, capabilities, and resource
           limits MUST be selected by server-owned policy.
       docker_authority_is_private:
-        statement: Docker host authority MUST NOT be accessible to Service Users,
+        statement: Container-host authority MUST NOT be accessible to customers,
           Authorized Agents, or Hosted Repository runtimes.
       lifecycle_is_auditable:
         statement: Hosted Repository runtime lifecycle operations MUST emit sanitized
@@ -179,7 +179,7 @@ architecture:
         statement: Telemetry MUST NOT contain customer source code, prompts, full agent
           output, authentication material, or Vendor Credential plaintext.
       bounded_logs:
-        statement: Hosted-service application logs MUST have a 30-day retention period.
+        statement: Hosted operational records MUST have a 30-day retention period.
       fail_open:
         statement: Observability failure MUST NOT interrupt Hosted Repository coordination.
   managed_control_plane_database:
@@ -187,8 +187,7 @@ architecture:
     selection: DigitalOcean Managed PostgreSQL
     rationale: >-
       Provide durable central storage for hosted users, authorization, repository
-      registration, and service metadata without operating a database inside the
-      application runtime.
+      registration, and offering metadata without colocating it in a customer runtime.
     constraints:
       no_repository_content:
         statement: The central database MUST NOT store customer source code, worktrees,
@@ -204,16 +203,16 @@ architecture:
           ciphertext protected by key material held outside the central database.
   per_user_kms_encryption:
     category: provider
-    selection: AWS KMS envelope encryption with one KMS key per Service User
+    selection: AWS KMS envelope encryption with distinct customer keys
     rationale: >-
       Isolate customer credential encryption, keep key-encryption material inside managed
       HSM-backed infrastructure, and support customer-scoped cryptographic deletion.
     constraints:
       per_user_key:
-        statement: Each Service User's Vendor Credentials MUST be protected by a distinct
+        statement: Each customer's Vendor Credentials MUST be protected by a distinct
           AWS KMS key.
       authenticated_context:
-        statement: Credential encryption and decryption MUST bind the Service User,
+        statement: Credential encryption and decryption MUST bind the customer identity,
           provider, and credential identity through authenticated encryption context.
       kms_fail_closed:
         statement: Vendor Credential storage and retrieval MUST fail closed when AWS KMS
@@ -222,7 +221,7 @@ architecture:
         statement: Plaintext data-encryption keys and Vendor Credentials MUST NOT be
           persisted.
       deletion_revokes_key:
-        statement: Cancelling a Service User account MUST schedule its AWS KMS key for
+        statement: Cancelling a customer account MUST schedule its AWS KMS key for
           deletion after active credential records are removed.
   reproducible_hosted_infrastructure:
     category: framework
@@ -297,7 +296,7 @@ architecture:
       access tokens or granting access beyond repositories selected during installation.
     constraints:
       github_sign_in:
-        statement: Service User authentication MUST use an authenticated GitHub identity.
+        statement: User authentication MUST use an authenticated GitHub identity.
       selected_repository_authority:
         statement: A Hosted Repository MUST be authorized through a GitHub App installation
           that includes the selected source repository.
@@ -337,7 +336,7 @@ architecture:
     constraints:
       public_support_first:
         statement: A coding runner MUST satisfy the public Quorum Delivery Contract before
-          the hosted service may offer it.
+          the hosted offering may provide it.
       hosted_adapter_required:
         statement: A supported hosted coding runner MUST preserve per-run credential and
           permission isolation through its provider-specific adapter.

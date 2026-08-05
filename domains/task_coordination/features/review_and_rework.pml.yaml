@@ -42,9 +42,11 @@ use_cases:
     - Fresh independent review is required.
     otherwise:
     - Unresolved findings continue to block merge.
-components:
+behaviors:
   acceptance_outcomes:
-    purpose: Preserve the feature outcomes required for conforming delivery.
+    output:
+      statement: >-
+        One accountable Rework Attempt resolving every blocking finding before fresh review.
     rules:
       rework_preserves_accountability:
         statement: Every Rework Attempt MUST preserve a durable outcome for each blocking

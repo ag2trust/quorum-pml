@@ -29,9 +29,14 @@ rules:
   deletion_removes_access:
     statement: Deleting a Hosted Repository MUST revoke service access to its code,
       credentials, coordination state, and managed coding contexts.
-components:
+behaviors:
   safe_provisioning:
-    purpose: Make Hosted Repository creation repeatable and fail-safe.
+    output:
+      one_of:
+        repository_available:
+          statement: One healthy isolated Hosted Repository available for coordinated delivery.
+        provisioning_failed:
+          statement: One visible sanitized provisioning failure with no unsafe partial authority.
     rules:
       idempotent_provisioning:
         statement: Repeating a Hosted Repository provisioning request MUST NOT create a
@@ -49,7 +54,9 @@ components:
         statement: ON FAILURE, THE SYSTEM MUST report the failed provisioning stage without
           exposing credentials or private repository content.
   network_boundary:
-    purpose: Restrict inbound and outbound connectivity for each Hosted Repository runtime.
+    output:
+      statement: >-
+        One Hosted Repository network boundary denying public inbound access and filtering outbound access.
     rules:
       private_runtime:
         statement: A Hosted Repository runtime MUST NOT be directly accessible from the

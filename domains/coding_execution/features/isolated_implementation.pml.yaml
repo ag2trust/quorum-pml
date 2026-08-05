@@ -38,9 +38,10 @@ use_cases:
     - The Coding Worker signals the Proposed Change to the Coordination Daemon.
     otherwise:
     - The Managed Task remains incomplete and cannot progress to merge.
-components:
+behaviors:
   acceptance_outcomes:
-    purpose: Preserve the feature outcomes required for conforming delivery.
+    output:
+      statement: One isolated implementation result requiring an authoritative completion signal.
     rules:
       concurrent_work_is_isolated:
         statement: Concurrent implementation Coding Runs MUST NOT share an active

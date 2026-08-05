@@ -13,9 +13,16 @@ emits:
   - decomposition_blocked
   - task_graph_completed
 
-components:
+behaviors:
   admission:
-    purpose: Route only eligible large implementation work into decomposition.
+    output:
+      one_of:
+        decomposition_required:
+          statement: One eligible large implementation Managed Task routed to decomposition planning.
+        ordinary_delivery:
+          statement: One bounded Managed Task retained in ordinary delivery.
+        planning_held:
+          statement: One visible hold for large work that is ineligible for decomposition.
     rules:
       large_implementation_requires_planning:
         statement: >-
@@ -46,7 +53,9 @@ components:
           Task Graph remains active in the repository.
 
   planner_authority:
-    purpose: Give one capable planner enough context without delivery authority.
+    output:
+      statement: >-
+        One source-preserving planning proposal produced without delivery or routing authority.
     rules:
       planner_receives_source_context:
         statement: >-
@@ -73,7 +82,8 @@ components:
         statement: THE SYSTEM MUST use high reasoning capability for decomposition planning.
 
   planner_sandbox:
-    purpose: Bound planning inspection and resource use.
+    output:
+      statement: One bounded Planning Agent result produced with read-only repository authority.
     rules:
       planner_has_read_only_repository:
         statement: THE Planning Agent MUST receive only read access to the repository.
@@ -93,7 +103,12 @@ components:
         statement: THE SYSTEM MUST bound every Planning Agent call with a hard timeout.
 
   planner_outcomes:
-    purpose: Permit either a safe proposal or a concrete blocker.
+    output:
+      one_of:
+        plan_proposed:
+          statement: One bounded Decomposition Plan preserving the complete source outcome.
+        planning_blocked:
+          statement: One concrete Planning Blocker identifying the decision required for safe planning.
     rules:
       planner_returns_closed_outcome:
         statement: >-
@@ -121,7 +136,8 @@ components:
           THE Planning Agent MUST NOT create generated Managed Tasks.
 
   plan_shape:
-    purpose: Bound the proposed graph and preserve complete source coverage.
+    output:
+      statement: One bounded acyclic task proposal covering every source outcome and constraint.
     rules:
       plan_has_bounded_task_count:
         statement: >-
@@ -149,7 +165,9 @@ components:
           Managed Task in an accepted Decomposition Plan.
 
   proposed_task_identity:
-    purpose: Give every proposed task a unique traceable responsibility.
+    output:
+      statement: >-
+        One uniquely identified proposed Managed Task with an observable outcome and explicit verification.
     rules:
       proposed_identifier_is_unique:
         statement: >-
@@ -173,7 +191,12 @@ components:
           an independently deliverable outcome.
 
   plan_validation:
-    purpose: Validate the complete proposal before any generated work exists.
+    output:
+      one_of:
+        plan_accepted:
+          statement: One complete source-preserving plan accepted before generated work exists.
+        plan_rejected:
+          statement: One complete plan rejection that creates and changes no Managed Task.
     rules:
       proposed_work_contributes_to_source:
         statement: >-
@@ -204,7 +227,12 @@ components:
           cover the source intent.
 
   planning_limits:
-    purpose: Bound semantic retries and provider failures independently.
+    output:
+      one_of:
+        planning_continues:
+          statement: One bounded retry outcome charged to its applicable planning budget.
+        planning_exhausted:
+          statement: One visible Delivery Hold preserving the final bounded planning failure.
     rules:
       proposals_are_bounded:
         statement: >-
@@ -235,7 +263,9 @@ components:
           approved Frontier Planning Model is unavailable.
 
   repository_freeze:
-    purpose: Plan and validate against a stable managed repository state.
+    output:
+      statement: >-
+        One stable managed repository revision preserved throughout proposal, validation, and classification.
     rules:
       planning_freezes_managed_delivery:
         statement: >-
@@ -263,7 +293,8 @@ components:
           source.
 
   materialization:
-    purpose: Create one complete classified graph as an atomic lifecycle transition.
+    output:
+      statement: One complete classified Task Graph created through one atomic lifecycle transition.
     rules:
       one_graph_per_source:
         statement: >-
@@ -294,7 +325,8 @@ components:
           accepted plan revision.
 
   single_level_materialization:
-    purpose: Materialize one level automatically without recursive orchestration.
+    output:
+      statement: One non-recursive Task Graph materialized automatically from an accepted plan.
     rules:
       generated_tasks_are_not_decomposed:
         statement: THE SYSTEM MUST NOT decompose a generated Managed Task.
@@ -308,7 +340,12 @@ components:
           source Managed Task.
 
   source_revision:
-    purpose: Restart admission safely before materialization and lock scope afterward.
+    output:
+      one_of:
+        revision_restarted:
+          statement: One accepted source revision returned safely to admission before materialization.
+        scope_locked:
+          statement: One materialized source and child scope protected from later edits.
     rules:
       edit_stops_pending_work:
         statement: >-
@@ -338,7 +375,8 @@ components:
           Task Graph materialization.
 
   edit_consistency:
-    purpose: Make each accepted source edit one bounded atomic admission revision.
+    output:
+      statement: One accepted source edit applied as a bounded atomic admission revision.
     rules:
       edit_requires_expected_revision:
         statement: >-
@@ -354,7 +392,9 @@ components:
           apply the edit, advance the source revision, and restart admission.
 
   graph_scheduling:
-    purpose: Prefer graph completion while bounding concurrency and failure propagation.
+    output:
+      statement: >-
+        One eligible generated Managed Task selection respecting dependencies, failures, and parallelism.
     rules:
       claim_requires_active_source:
         statement: >-
@@ -385,7 +425,8 @@ components:
           source to be active concurrently.
 
   scheduling_policy:
-    purpose: Keep decomposition robust without monopolizing unrelated capacity.
+    output:
+      statement: One repository work selection preserving graph priority and unrelated delivery capacity.
     rules:
       planning_is_repository_serial:
         statement: >-
@@ -414,7 +455,8 @@ components:
           its accountable owner.
 
   child_delivery:
-    purpose: Preserve independent routing, review, and delivery responsibility per child.
+    output:
+      statement: One independently routed, reviewed, and delivered generated Managed Task.
     rules:
       children_are_classified_independently:
         statement: >-
@@ -444,7 +486,12 @@ components:
           itself invalid.
 
   graph_completion:
-    purpose: Derive source progress and completion from fully delivered children.
+    output:
+      one_of:
+        graph_active:
+          statement: One source progress result preserving incomplete generated delivery.
+        graph_done:
+          statement: One source completion result after every generated Managed Task is done.
     rules:
       graph_blocker_stops_new_work:
         statement: >-
@@ -472,7 +519,8 @@ components:
           done.
 
   graph_blocker_recovery:
-    purpose: Fail safely when review proves the accepted decomposition is invalid.
+    output:
+      statement: One visibly blocked Task Graph requiring source cancellation and replacement.
     rules:
       graph_blocker_fails_affected_child:
         statement: >-
@@ -495,7 +543,8 @@ components:
           source Managed Task.
 
   cancellation:
-    purpose: Stop the complete graph while preserving durable evidence.
+    output:
+      statement: One cancelled Task Graph with active work stopped and durable delivery evidence preserved.
     rules:
       source_cancellation_stops_graph:
         statement: >-
@@ -525,7 +574,8 @@ components:
           THE SYSTEM MUST reject direct cancellation of one generated Managed Task.
 
   cancellation_cleanup:
-    purpose: Remove revocable delivery artifacts without destroying audit evidence.
+    output:
+      statement: One cleanup result removing revocable delivery artifacts and preserving audit evidence.
     rules:
       cancellation_closes_unmerged_changes:
         statement: >-
@@ -541,7 +591,14 @@ components:
           cancellation.
 
   recovery:
-    purpose: Recover decomposition without partial, duplicate, or unsafe work.
+    output:
+      one_of:
+        planning_recovered:
+          statement: One safe recovered planning cycle with no partial or duplicate work.
+        graph_recovered:
+          statement: One complete valid Task Graph resumed without recreation.
+        recovery_held:
+          statement: One visible hold preventing unsafe recovered decomposition activity.
     rules:
       planning_state_survives_restart:
         statement: >-
@@ -570,7 +627,8 @@ components:
           generated Managed Task has started, produced a Proposed Change, or merged.
 
   planning_recovery_priority:
-    purpose: Restore exclusive planning authority before unrelated delivery resumes.
+    output:
+      statement: One recovered planning source restored before unrelated managed delivery resumes.
     rules:
       planning_freeze_is_durable:
         statement: THE SYSTEM MUST preserve an active managed delivery freeze across restart.
@@ -584,7 +642,8 @@ components:
           rejected Decomposition Plan.
 
   upgrade_recovery:
-    purpose: Apply decomposition safely to work that predates the capability.
+    output:
+      statement: One safe admission or recovery result for work predating decomposition capability.
     rules:
       unrelated_existing_work_uses_policy:
         statement: >-
@@ -605,7 +664,8 @@ components:
           source.
 
   observability:
-    purpose: Expose bounded graph progress, blockers, and provenance without controls.
+    output:
+      statement: One bounded read-only account of Task Graph progress, blockers, and provenance.
     rules:
       status_exposes_membership:
         statement: >-
@@ -635,7 +695,8 @@ components:
           THE SYSTEM MUST NOT persist full planning prompts or model transcripts.
 
   provider_accounting:
-    purpose: Classify non-semantic planner failures under the provider budget.
+    output:
+      statement: One planning provider failure charged to its bounded provider budget.
     rules:
       malformed_output_is_provider_failure:
         statement: >-

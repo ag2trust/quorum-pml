@@ -42,9 +42,11 @@ use_cases:
     - Repository Service merge confirmation completes the Managed Task.
     otherwise:
     - The Managed Task remains unmerged and incomplete with a visible disposition.
-components:
+behaviors:
   acceptance_outcomes:
-    purpose: Preserve the feature outcomes required for conforming delivery.
+    output:
+      statement: >-
+        One merged current Proposed Change revision with every required approval and Required Check.
     rules:
       only_safe_revision_merges:
         statement: Only a current Proposed Change revision with every required approval

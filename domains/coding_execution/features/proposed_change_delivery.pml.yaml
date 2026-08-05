@@ -34,9 +34,11 @@ use_cases:
     - The Managed Task becomes eligible for independent review.
     otherwise:
     - The signal is rejected without advancing the Managed Task.
-components:
+behaviors:
   acceptance_outcomes:
-    purpose: Preserve the feature outcomes required for conforming delivery.
+    output:
+      statement: >-
+        One durable reviewable Proposed Change associated with its Managed Task across restart.
     rules:
       durable_reviewable_change:
         statement: An accepted completion signal MUST identify an open Proposed Change

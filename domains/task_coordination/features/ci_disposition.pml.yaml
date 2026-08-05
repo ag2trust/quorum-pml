@@ -69,9 +69,16 @@ use_cases:
     - Unchanged unhealthy observations do not duplicate lifecycle effects.
     otherwise:
     - Held task context and approvals remain durable across daemon restart.
-components:
+behaviors:
   acceptance_outcomes:
-    purpose: Preserve the feature outcomes required for conforming delivery.
+    output:
+      one_of:
+        change_rework:
+          statement: One contextual rework outcome for a Proposed Change failure with healthy base checks.
+        base_hold:
+          statement: One durable Delivery Hold for unhealthy or unknown base checks.
+        delivery_resumed:
+          statement: One resumed delivery outcome after required base checks recover.
     rules:
       change_failure_routes_to_rework:
         statement: A proposed-change CI failure with healthy base CI MUST result in
