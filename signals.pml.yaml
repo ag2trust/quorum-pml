@@ -30,3 +30,7 @@ decomposition_blocked:
   meaning: A Planning Blocker or exhausted planning limit prevented safe decomposition.
 task_graph_completed:
   meaning: Every generated Managed Task in a Task Graph became fully done.
+review_interpretation_completed:
+  meaning: A final Proposed Change review record produced durable normalized findings.
+follow_up_assessment_completed:
+  meaning: Every Follow-up Artifact in one assessment received a durable disposition.

@@ -43,9 +43,11 @@ use_cases:
     - No implementation Coding Run is provisioned initially.
     otherwise:
     - A missing or invalid Proposed Change is rejected.
-components:
+behaviors:
   acceptance_outcomes:
-    purpose: Preserve the feature outcomes required for conforming delivery.
+    output:
+      statement: >-
+        One accepted Managed Task with exactly one implementation or review-only delivery responsibility.
     rules:
       one_delivery_responsibility:
         statement: Every accepted Managed Task MUST have exactly one implementation

@@ -28,10 +28,12 @@ rules:
   no_automatic_collaborator_access:
     statement: Source-repository collaboration MUST NOT automatically grant access to a
       Service Account or Hosted Repository.
-components:
+behaviors:
   authority_boundary:
-    purpose: Prevent people and external agents from acquiring runtime or customer-content
-      authority through the hosted service.
+    output:
+      statement: >-
+        One authorization result that grants no runtime or customer-content authority
+        beyond an active Access Grant.
     rules:
       no_user_shell:
         statement: THE SYSTEM MUST NOT provide Service Users with interactive shell access
@@ -47,8 +49,9 @@ components:
           for reading customer source code, personal information, Vendor Credentials, or
           managed coding content.
   monitoring_surface:
-    purpose: Let authorized people observe Quorum activity without obtaining execution
-      authority.
+    output:
+      statement: >-
+        One repository-scoped read-only account of Quorum activity with no execution authority.
     rules:
       monitoring_is_repository_scoped:
         statement: The monitoring surface MUST display only Hosted Repositories permitted
@@ -60,8 +63,9 @@ components:
         statement: The monitoring surface MUST NOT change Managed Task lifecycle, repository
           content, or runtime state.
   agent_coordination_surface:
-    purpose: Let authorized agents coordinate repository work through constrained Quorum
-      operations.
+    output:
+      statement: >-
+        One repository-scoped coordination result limited to explicitly granted Quorum operations.
     rules:
       lifecycle_authority_preserved:
         statement: Agent coordination access MUST NOT transfer lifecycle or merge authority

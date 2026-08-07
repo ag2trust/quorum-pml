@@ -7,9 +7,10 @@ actors:
 emits:
 - coding_run_failed
 - coding_run_interrupted
-components:
+behaviors:
   run_authority:
-    purpose: Ensure runner-specific execution cannot change lifecycle authority.
+    output:
+      statement: One Coding Run with lifecycle authority unchanged by its selected runner.
     rules:
       same_delivery_contract:
         statement: Every Supported Coding Runner MUST satisfy the same Delivery Contract.
@@ -26,7 +27,9 @@ components:
         statement: Changing the Supported Coding Runner MUST NOT change task, review,
           or merge authority.
   failure_and_recovery:
-    purpose: Make runner interruption, failure, and continuation explicit and fail-safe.
+    output:
+      statement: >-
+        One explicit fail-safe continuation or failure outcome for an interrupted Coding Run.
     rules:
       continuation_is_durable:
         statement: The Coordination Daemon MUST durably associate runner continuation
@@ -46,7 +49,8 @@ components:
         statement: Runner startup, authentication, quota, protocol, or execution failure
           MUST preserve the Managed Task without unsafe lifecycle progression.
   acceptance_outcomes:
-    purpose: Preserve the feature outcomes required for conforming delivery.
+    output:
+      statement: One runner-independent delivery outcome preserving every lifecycle protection.
     rules:
       equivalent_delivery_contract:
         statement: Every Supported Coding Runner MUST complete implementation, independent

@@ -22,9 +22,11 @@ rules:
   comments_do_not_transition:
     statement: GitHub comment or review text MUST NOT directly advance or complete a Managed
       Task.
-components:
+behaviors:
   review_context:
-    purpose: Give managed agents precise pull-request and review-thread context.
+    output:
+      statement: >-
+        One review context identifying its exact Proposed Change revision and applicable location.
     rules:
       anchored_inline_context:
         statement: Inline review context MUST identify the applicable file, revision, diff
@@ -33,8 +35,9 @@ components:
         statement: THE SYSTEM MUST identify review context that no longer applies to the
           current Proposed Change revision.
   collaboration_operations:
-    purpose: Let workers and reviewers communicate through constrained GitHub-shaped
-      capabilities.
+    output:
+      statement: >-
+        One authorized review contribution recorded without transferring formal review or merge authority.
     rules:
       general_comment:
         statement: An authorized Coding Worker or Code Reviewer MUST be able to post a

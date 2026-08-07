@@ -37,14 +37,68 @@ use_cases:
     - The Code Reviewer examines the full change and relevant surrounding behavior.
     then:
     - Findings are recorded on the Proposed Change.
+    - Technical impact and merge disposition are classified independently.
     - The Review Verdict matches the number of blocking findings.
     - The Coordination Daemon receives the attested Review Verdict.
     otherwise:
     - Missing evidence or an inconsistent verdict prevents approval.
-components:
+behaviors:
   acceptance_outcomes:
-    purpose: Preserve the feature outcomes required for conforming delivery.
+    output:
+      statement: >-
+        One complete evidence-based Review Verdict for the exact Proposed Change
+        revision under evaluation.
     rules:
       independent_attested_review:
         statement: Every Proposed Change MUST receive the configured independent Review
           Verdicts for its current exact revision before merge.
+
+  finding_classification:
+    context:
+      - One evidence-backed reviewer observation and its demonstrated failure assumptions.
+    output:
+      statement: >-
+        One Review Finding with independently classified technical impact and merge
+        disposition.
+    rules:
+      impact_and_disposition_are_independent:
+        statement: >-
+          Every Review Finding MUST classify technical impact independently from whether
+          the finding blocks the current Proposed Change.
+      blockers_require_current_scope:
+        statement: >-
+          The Code Reviewer MUST classify a Review Finding as blocking only when it
+          violates the current Managed Task outcome, an applicable product constraint, or
+          supported behavior introduced or materially worsened by the Proposed Change.
+      threat_assumptions_are_explicit:
+        statement: >-
+          A security Review Finding MUST identify the operating or threat assumptions
+          required for its demonstrated failure.
+      stronger_threat_model_is_follow_up:
+        statement: >-
+          The Code Reviewer MUST NOT block a Proposed Change solely for a failure that
+          requires a materially stronger threat model than the accepted product
+          constraints.
+      follow_up_does_not_change_verdict:
+        statement: >-
+          A non-blocking Review Finding MUST NOT increase the blocking count or prevent an
+          otherwise valid approval.
+
+  reviewer_authority:
+    context:
+      - One authorized review Coding Run and exact Proposed Change revision.
+    output:
+      statement: >-
+        One durable review contribution made within the reviewer's scoped authority.
+    rules:
+      reviewer_uses_structured_coordination:
+        statement: >-
+          The Code Reviewer MUST record and resolve Review Findings through the
+          daemon-authorized structured coordination interface.
+      reviewer_has_no_repository_commands:
+        statement: >-
+          The Code Reviewer MUST NOT receive direct Repository Service command authority.
+      reviewer_cannot_create_follow_up_work:
+        statement: >-
+          The Code Reviewer MUST NOT create a Managed Task from a non-blocking Review
+          Finding.

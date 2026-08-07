@@ -46,6 +46,41 @@ task_graph:
     - cancelled
 planning_blocker:
   meaning: Evidence that safe decomposition requires clarification or owner intervention.
+review_finding:
+  meaning: >-
+    Evidence-backed reviewer observation classified independently by technical impact
+    and merge disposition.
+follow_up_artifact:
+  meaning: >-
+    Durable normalized evidence for a non-blocking concern that may justify future
+    Managed Task.
+  states:
+    - collected
+    - assessing
+    - accepted
+    - linked
+    - dismissed
+    - deferred
+review_interpretation:
+  meaning: >-
+    A bounded retrospective classification of a final Proposed Change review record.
+  states:
+    - pending
+    - succeeded
+    - failed
+follow_up_assessment:
+  meaning: >-
+    A Planning Agent decision accounting for a complete supplied Follow-up Artifact
+    batch.
+  states:
+    - pending
+    - assessing
+    - completed
+    - failed
+planning_lineage:
+  meaning: >-
+    Durable source intent, accepted planning decisions, and delivery relationships used
+    to reconstruct planning context.
 hosted_repository:
   meaning: >-
     One registered source repository and its isolated Quorum runtime, durable coordination
