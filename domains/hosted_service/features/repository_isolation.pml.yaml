@@ -20,6 +20,8 @@ rules:
   single_daemon_authority:
     statement: Exactly one live Coordination Daemon MUST govern each available Hosted
       Repository.
+  single_active_runtime:
+    statement: Each available Hosted Repository MUST have exactly one active runtime.
   replacement_preserves_state:
     statement: Replacing a Hosted Repository runtime MUST preserve its accepted durable
       coordination state.

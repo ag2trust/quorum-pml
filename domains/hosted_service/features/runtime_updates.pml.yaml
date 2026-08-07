@@ -16,6 +16,9 @@ rules:
   new_work_is_held:
     statement: THE SYSTEM MUST prevent new managed-agent work from starting after a runtime
       update begins.
+  prior_runtime_stops_first:
+    statement: THE SYSTEM MUST stop the prior Hosted Repository runtime before starting its
+      replacement.
   persistent_state_is_reused:
     statement: Runtime replacement MUST preserve and remount the Hosted Repository's source
       repository and Quorum coordination state.
