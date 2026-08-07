@@ -54,7 +54,7 @@ Review Finding:
 Follow-up Artifact:
   meaning: >-
     Durable normalized evidence for a non-blocking concern that may justify future
-    Managed Task after its Proposed Change is final.
+    Managed Task after the originating Proposed Change is final.
 Review Interpretation:
   meaning: >-
     A bounded retrospective classification of the final review record into durable
