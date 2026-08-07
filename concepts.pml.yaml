@@ -83,8 +83,9 @@ planning_lineage:
     to reconstruct planning context.
 hosted_repository:
   meaning: >-
-    One registered source repository and its isolated Quorum runtime, durable coordination
-    state, managed coding contexts, and repository-scoped authorization.
+    One registered source repository with a globally unique identity composed of its account
+    and repository names, and its isolated Quorum runtime, durable coordination state, managed
+    coding contexts, and repository-scoped authorization.
   states:
     - provisioning
     - available
