@@ -43,3 +43,20 @@ behaviors:
       durable_reviewable_change:
         statement: An accepted completion signal MUST identify an open Proposed Change
           on the Managed Task's assigned branch and remain associated across restart.
+  human_review_context:
+    output:
+      statement: >-
+        One concise Proposed Change description that lets a human understand the assigned outcome and delivered evidence.
+    rules:
+      originating_task_is_visible:
+        statement: The Proposed Change description MUST identify its Managed Task and include
+          the accepted title and task body, or state explicitly that no task body was provided.
+      delivery_summary_is_visible:
+        statement: The Proposed Change description MUST distinguish the delivered change
+          summary from the originating task context.
+      verification_is_visible:
+        statement: The Proposed Change description MUST identify the verification reported
+          for the delivered revision and MUST distinguish missing verification from passing evidence.
+      presentation_is_structured:
+        statement: Quorum-owned Proposed Change presentation MUST use stable readable sections
+          and MUST NOT substitute raw agent transcripts or progress chatter for a delivery description.
