@@ -48,6 +48,16 @@ behaviors:
       thread_reply:
         statement: An authorized Coding Worker or Code Reviewer MUST be able to reply to an
           applicable pull-request review thread through Quorum.
+      thread_reply_continuity:
+        statement: A reply to a pull-request review thread MUST remain attached to the
+          referenced thread instead of becoming an unrelated general comment.
+      coherent_review_contribution:
+        statement: An authorized Code Reviewer MUST be able to publish one review summary
+          with its applicable inline findings for the exact Proposed Change revision.
+      authored_markdown_is_preserved:
+        statement: THE SYSTEM MUST preserve the authored GitHub-flavored Markdown structure
+          of authorized general comments, review summaries, inline comments, and thread
+          replies when recording them on the Proposed Change.
       formal_review_authority:
         statement: Agent collaboration operations MUST NOT transfer formal review or merge
           authority away from the Coordination Daemon.

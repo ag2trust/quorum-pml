@@ -321,6 +321,12 @@ architecture:
       structured_pr_operations:
         statement: Agent pull-request collaboration MUST use explicit general-comment,
           inline-comment, thread-reply, and review capabilities.
+      authored_markdown_fidelity:
+        statement: Quorum-mediated pull-request collaboration MUST preserve the authored
+          GitHub-flavored Markdown structure of comments, reviews, and replies.
+      coherent_review_contribution:
+        statement: A Code Reviewer MUST be able to publish one review summary with applicable
+          inline findings for the exact Proposed Change revision.
       anchored_review_context:
         statement: Inline review context MUST identify its repository path, revision, diff
           side, line, thread, and nearby code.
