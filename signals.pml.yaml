@@ -26,6 +26,8 @@ planning_started:
   meaning: Exclusive decomposition planning began for one oversized Managed Task.
 decomposition_materialized:
   meaning: A complete accepted Task Graph was created atomically for its source Managed Task.
+plan_review_completed:
+  meaning: A Plan Arbiter returned one durable Plan Verdict for one Decomposition Plan.
 decomposition_blocked:
   meaning: A Planning Blocker or exhausted planning limit prevented safe decomposition.
 task_graph_completed:

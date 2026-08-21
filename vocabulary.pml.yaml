@@ -43,6 +43,15 @@ Planning Blocker:
   meaning: >-
     Concrete evidence that a Managed Task cannot be decomposed safely without changed
     intent, additional information, or owner intervention.
+Plan Arbiter:
+  meaning: >-
+    A single-shot, stateless, read-only model reviewer spawned fresh per Decomposition
+    Plan in the planner's frozen repository view to judge faithfulness, coverage and
+    non-overlap, coherence, and decomposability.
+Plan Verdict:
+  meaning: >-
+    The one closed Plan Arbiter result for one Decomposition Plan: approve, changes with
+    findings, or reject source.
 Frontier Planning Model:
   meaning: >-
     The owner-approved highest-capability model for repository-aware planning on a
