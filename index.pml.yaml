@@ -22,6 +22,10 @@ actors:
     meaning: >-
       A repository-aware read-only coding run authorized to propose bounded delivery
       work from an oversized Managed Task or durable post-review evidence.
+  plan_arbiter:
+    meaning: >-
+      A single-shot, stateless, read-only coding run authorized to judge one Decomposition
+      Plan against its source before generated work exists, without lifecycle authority.
   repository_service:
     meaning: >-
       The external source-control system that stores branches, proposed changes,

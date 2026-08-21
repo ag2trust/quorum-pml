@@ -44,6 +44,15 @@ task_graph:
     - blocked
     - done
     - cancelled
+plan_verdict:
+  meaning: >-
+    One closed Plan Arbiter result for one Decomposition Plan, recorded durably on every
+    outcome.
+  states:
+    - approve
+    - changes
+    - reject source
+    - provider failure
 planning_blocker:
   meaning: Evidence that safe decomposition requires clarification or owner intervention.
 review_finding:

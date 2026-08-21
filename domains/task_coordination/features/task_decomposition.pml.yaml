@@ -6,9 +6,11 @@ actors:
   - task_author
   - coordination_daemon
   - planning_agent
+  - plan_arbiter
 
 emits:
   - planning_started
+  - plan_review_completed
   - decomposition_materialized
   - decomposition_blocked
   - task_graph_completed
@@ -99,6 +101,10 @@ behaviors:
           Plan or Planning Blocker structure.
       planner_output_is_bounded:
         statement: THE SYSTEM MUST bound Planning Agent output.
+      planner_final_response_is_the_output:
+        statement: >-
+          THE SYSTEM MUST evaluate only the Planning Agent's final response as planner
+          output, never narration emitted while it inspects the repository.
       planner_call_has_timeout:
         statement: THE SYSTEM MUST bound every Planning Agent call with a hard timeout.
 
@@ -225,6 +231,80 @@ behaviors:
         statement: >-
           THE SYSTEM MUST reject a Decomposition Plan that expands, weakens, or fails to
           cover the source intent.
+      scope_is_judged_not_matched:
+        statement: >-
+          THE SYSTEM MUST judge source faithfulness through the Plan Arbiter rather than
+          by byte-exact reproduction of source text.
+      structural_checks_precede_review:
+        statement: >-
+          THE SYSTEM MUST complete deterministic shape, identity, and deliverable checks
+          before a Decomposition Plan is submitted to the Plan Arbiter.
+
+  plan_review:
+    output:
+      one_of:
+        plan_approved:
+          statement: One Plan Verdict allowing the Decomposition Plan to proceed to classification.
+        plan_changes_required:
+          statement: One Plan Verdict with blocking findings returning the planner to revise.
+        source_rejected:
+          statement: One Plan Verdict holding the source for a required owner decision.
+        review_failed:
+          statement: One provider failure recorded with no approval implied.
+    rules:
+      every_valid_plan_is_reviewed:
+        statement: >-
+          THE SYSTEM MUST submit every structurally valid Decomposition Plan to one Plan
+          Arbiter before classification.
+      arbiter_is_fresh_per_plan:
+        statement: >-
+          THE SYSTEM MUST spawn a new stateless Plan Arbiter for every Decomposition Plan.
+      arbiter_sees_the_frozen_view:
+        statement: >-
+          THE Plan Arbiter MUST receive the same frozen read-only repository view and
+          authoritative source as the Planning Agent.
+      arbiter_has_planner_sandbox:
+        statement: >-
+          THE Plan Arbiter MUST receive no network, coordination, or database access.
+      arbiter_judges_four_mandates:
+        statement: >-
+          THE Plan Arbiter MUST judge faithfulness, coverage and non-overlap, coherence,
+          and decomposability.
+      arbiter_returns_closed_verdict:
+        statement: >-
+          THE Plan Arbiter MUST return exactly one Plan Verdict through the defined
+          structure.
+      arbiter_final_response_is_the_verdict:
+        statement: >-
+          THE SYSTEM MUST evaluate only the Plan Arbiter's final response as its Plan
+          Verdict.
+      arbiter_has_no_lifecycle_authority:
+        statement: >-
+          THE Plan Arbiter MUST NOT transition lifecycle state, create, or modify any
+          Managed Task.
+      approval_advances_to_classification:
+        statement: >-
+          THE SYSTEM MUST advance an approved Decomposition Plan, or one whose findings
+          are all non-blocking, to classification.
+      blocking_findings_consume_a_proposal:
+        statement: >-
+          THE SYSTEM MUST count a Plan Verdict with a blocking finding as one rejected
+          Decomposition Plan and return the planner to revise against those findings.
+      source_rejection_holds_source:
+        statement: >-
+          THE SYSTEM MUST hold the source Managed Task after a reject-source Plan Verdict
+          without creating generated work.
+      review_failure_is_provider_failure:
+        statement: >-
+          THE SYSTEM MUST count a malformed, absent, or provider-failed Plan Verdict as a
+          planning provider failure.
+      review_never_approves_silently:
+        statement: >-
+          THE SYSTEM MUST NOT treat any failed or missing plan review as approval.
+      review_is_restart_safe:
+        statement: >-
+          THE SYSTEM MUST NOT materialize a Task Graph twice when a restart re-runs plan
+          review.
 
   planning_limits:
     output:
@@ -686,6 +766,18 @@ behaviors:
         statement: >-
           THE SYSTEM MUST expose planning attempts and final exhausted-plan or
           provider-failure reasons through read-only status.
+      every_plan_verdict_is_durable:
+        statement: >-
+          THE SYSTEM MUST record every Plan Verdict durably, including approval, with its
+          findings, duration, and selected provider and model.
+      status_exposes_plan_verdict:
+        statement: >-
+          THE SYSTEM MUST expose the latest Plan Verdict for a source Managed Task through
+          read-only status.
+      planning_runs_are_accounted:
+        statement: >-
+          THE SYSTEM MUST record token usage and a bounded run log for every Planning
+          Agent and Plan Arbiter run.
       planning_history_is_bounded:
         statement: >-
           THE SYSTEM MUST retain no more than three rejected-plan summaries per planning
@@ -723,7 +815,8 @@ use_cases:
       - Managed repository activity drains and decomposition planning begins.
     then:
       - One Planning Agent proposes a bounded Decomposition Plan or a Planning Blocker.
-      - Every proposed Managed Task is classified before any generated task is created.
+      - One Plan Arbiter judges the structurally valid plan and returns a durable Plan Verdict.
+      - Every proposed Managed Task is classified only after the Plan Verdict approves.
       - A valid complete Task Graph is created atomically before delivery resumes.
     otherwise:
       - Rejected plans create no tasks and bounded failure holds the source visibly.
