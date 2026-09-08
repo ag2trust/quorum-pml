@@ -7,7 +7,9 @@ Admission Ready:
     A classifier decision that a Managed Task is sufficiently clear and bounded for its
     assigned delivery path, independent of runtime dependency eligibility.
 Coding Run:
-  meaning: One daemon-authorized coding execution assigned to one Managed Task and role.
+  meaning: >-
+    One transient daemon-authorized coding execution assigned to one Managed Task and
+    role, with bounded durable audit evidence distinct from Managed Task lifecycle state.
 Proposed Change:
   meaning: The branch and pull request produced or revised for one Managed Task.
 Base Revision:
@@ -39,6 +41,14 @@ Task Graph:
   meaning: >-
     The accepted set of generated Managed Tasks, their source relationship, and their
     delivery dependencies.
+Recovery Delivery:
+  meaning: >-
+    A separately managed continuation whose exact Proposed Change completed protected
+    review and merge and may satisfy one named failed generated Managed Task.
+Delivery Adoption:
+  meaning: >-
+    An evidence-bound atomic recovery that associates one Recovery Delivery with one
+    named failed generated Managed Task and reconciles its Task Graph.
 Planning Blocker:
   meaning: >-
     Concrete evidence that a Managed Task cannot be decomposed safely without changed
