@@ -12,6 +12,7 @@ emits:
   - decomposition_materialized
   - decomposition_blocked
   - task_graph_completed
+  - recovery_delivery_adopted
 
 behaviors:
   admission:
@@ -535,12 +536,65 @@ behaviors:
           THE SYSTEM MUST NOT route a Task Graph blocker through ordinary child rework.
       graph_blocker_requires_source_cancellation:
         statement: >-
-          Recovery from a materialized Task Graph blocker MUST require cancellation of
-          the source Task Graph.
+          Recovery from a review-confirmed structural Task Graph blocker MUST require
+          cancellation of the source Task Graph.
       graph_blocker_requires_replacement:
         statement: >-
-          Recovery from a materialized Task Graph blocker MUST require a replacement
-          source Managed Task.
+          Recovery from a review-confirmed structural Task Graph blocker MUST require a
+          replacement source Managed Task.
+
+  failed_child_delivery_recovery:
+    output:
+      one_of:
+        recovery_adopted:
+          statement: >-
+            One exact Recovery Delivery adopted for its named failed generated Managed Task.
+        recovery_rejected:
+          statement: >-
+            One clean negative preserving the failed child and blocked Task Graph unchanged.
+    rules:
+      recovery_task_is_separate:
+        statement: >-
+          Completing a recovery Managed Task MUST NOT implicitly complete a different
+          failed generated Managed Task, even when both use the same Proposed Change.
+      adoption_names_exact_pair:
+        statement: >-
+          Delivery Adoption MUST name the exact failed generated Managed Task and exact
+          completed Recovery Delivery without inferring equivalence from text or shared scope.
+      adoption_requires_protected_delivery:
+        statement: >-
+          Delivery Adoption MUST require durable evidence of the exact continuation,
+          Proposed Change identity and revision, independent approval, and protected merge.
+      adoption_accepts_durable_worker_handoff:
+        statement: >-
+          Delivery Adoption MUST accept a transient worker whose run terminates after
+          submission only when durable evidence proves that the same authorized Coding
+          Run handed the exact Proposed Change to the Managed Task's review lifecycle.
+      run_ending_is_not_task_authority:
+        statement: >-
+          Delivery Adoption MUST NOT reject an otherwise exact protected delivery merely
+          because its disposable Coding Run ended after authoritative submission.
+      adoption_preserves_fail_closed_guards:
+        statement: >-
+          Delivery Adoption MUST reject missing, stale, mismatched, replayed, or
+          conflicting task, graph, run, review, revision, or merge evidence without mutation.
+      adoption_is_atomic:
+        statement: >-
+          THE SYSTEM MUST atomically record recovery provenance, mark the failed child
+          done, and reconcile the matching Task Graph hold.
+      adoption_reactivates_unfinished_graph:
+        statement: >-
+          WHEN valid Delivery Adoption resolves the child named by a recoverable
+          generated-child failure and unfinished siblings remain, THE SYSTEM MUST clear
+          that hold and reactivate the existing Task Graph without replanning.
+      adoption_preserves_dependency_gates:
+        statement: >-
+          Reactivating a Task Graph through Delivery Adoption MUST NOT start a generated
+          Managed Task before all of its delivery dependencies are done.
+      manual_close_does_not_replace_adoption:
+        statement: >-
+          THE SYSTEM MUST NOT use manual completion to clear a recoverable Task Graph hold
+          when the required Delivery Adoption evidence is absent or invalid.
 
   cancellation:
     output:

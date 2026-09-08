@@ -26,6 +26,36 @@ behaviors:
       equivalent_runner_authority:
         statement: Changing the Supported Coding Runner MUST NOT change task, review,
           or merge authority.
+  task_handoff:
+    output:
+      statement: >-
+        One durable lifecycle handoff that lets a transient Coding Run end while its Managed Task continues.
+    rules:
+      task_state_is_daemon_owned:
+        statement: >-
+          A Coding Run MUST signal an outcome, and the Coordination Daemon MUST own the
+          resulting Managed Task lifecycle transition.
+      run_state_is_distinct:
+        statement: >-
+          Ending or discarding a Coding Run MUST NOT by itself change the lifecycle state
+          of its Managed Task.
+      submitted_run_is_normal:
+        statement: >-
+          WHEN an authoritative Proposed Change submission advances a Managed Task to
+          in-review, THE SYSTEM MUST treat the worker's later termination as a
+          completed handoff rather than a delivery failure.
+      submitted_worker_is_disposable:
+        statement: >-
+          THE SYSTEM MUST allow a Coding Worker to terminate after its durable handoff
+          while independent review, rework, and protected merge continue for the Managed Task.
+      handoff_evidence_is_durable:
+        statement: >-
+          THE SYSTEM MUST retain bounded evidence linking the Coding Run identity, role,
+          authoritative submission, and resulting task transition after the runner process ends.
+      validation_uses_handoff_evidence:
+        statement: >-
+          A recovery validator MUST evaluate authoritative handoff and delivery evidence
+          instead of treating one runner termination label as Managed Task lifecycle authority.
   failure_and_recovery:
     output:
       statement: >-
@@ -45,6 +75,20 @@ behaviors:
       restart_is_fail_safe:
         statement: ON FAILURE, THE SYSTEM MUST resume a Coding Run safely or reprovision
           work without weakening lifecycle protections.
+      base_staleness_is_not_a_resume_failure:
+        statement: >-
+          WHEN an interrupted Coding Run resumes on an existing branch, THE SYSTEM MUST NOT
+          fail or park the Managed Task solely because the configured base branch advanced
+          after the branch was allocated; base integration is resolved at merge time.
+      resume_verifies_dependency_ancestry:
+        statement: >-
+          WHEN a Managed Task with completed dependencies resumes on an existing branch,
+          THE SYSTEM MUST verify that the branch contains each dependency's merge commit
+          by ancestry, and MUST NOT require equality with the current base tip.
+      resume_checks_branch_existence:
+        statement: >-
+          Resuming a Coding Run MUST verify that its allocated branch still exists before
+          reusing it, and MUST reprovision from the base rather than fail when it does not.
       runner_failure_is_fail_safe:
         statement: Runner startup, authentication, quota, protocol, or execution failure
           MUST preserve the Managed Task without unsafe lifecycle progression.

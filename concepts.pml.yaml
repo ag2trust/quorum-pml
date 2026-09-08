@@ -8,7 +8,9 @@ admission_ready:
     A classifier decision that work is sufficiently clear and bounded for its assigned
     delivery path, distinct from runtime dependency eligibility.
 coding_run:
-  meaning: One daemon-authorized coding execution assigned to one Managed Task and role.
+  meaning: >-
+    One transient daemon-authorized coding execution assigned to one Managed Task and
+    role, with bounded durable audit evidence distinct from the Managed Task lifecycle.
   states:
     - starting
     - active
@@ -44,6 +46,14 @@ task_graph:
     - blocked
     - done
     - cancelled
+recovery_delivery:
+  meaning: >-
+    A separately managed continuation whose exact Proposed Change completed protected
+    review and merge and may satisfy one named failed generated Managed Task.
+delivery_adoption:
+  meaning: >-
+    An evidence-bound atomic recovery that associates one Recovery Delivery with one
+    named failed generated Managed Task and reconciles its Task Graph.
 planning_blocker:
   meaning: Evidence that safe decomposition requires clarification or owner intervention.
 review_finding:

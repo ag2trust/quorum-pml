@@ -15,6 +15,16 @@ rules:
   dependencies_gate_execution:
     statement: WHILE a required Managed Task dependency is incomplete, THE SYSTEM
       MUST block dependent implementation.
+  dependency_park_is_not_execution_failure:
+    statement: >-
+      WHEN a Managed Task cannot execute because a required dependency is terminal and
+      not done, THE SYSTEM MUST record that blocked outcome distinctly from an execution
+      or delivery failure of the dependent task itself.
+  dependency_resolution_unblocks_dependents:
+    statement: >-
+      WHEN a previously failed dependency is later closed as delivered, THE SYSTEM MUST
+      allow each dependent Managed Task blocked only by that dependency to be resumed
+      without recreating it.
   cancellation_stops_provisioning:
     statement: WHEN a Managed Task is cancelled, THE SYSTEM MUST NOT provision a new
       Coding Run for it.
